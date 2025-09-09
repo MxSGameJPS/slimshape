@@ -21,7 +21,7 @@ export default function Header() {
           <a href="#resultados">Resultados</a>
           <a href="#faq">Perguntas Frequentes</a>
         </nav>
-        <a href="#cta" className={styles.cta}>
+        <a href="/pre-cadastro" className={styles.cta}>
           Quero uma Avaliação
         </a>
       </div>

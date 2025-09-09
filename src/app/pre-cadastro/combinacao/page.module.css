@@ -1,0 +1,93 @@
+.radioForm {
+  width: 100%;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 0 auto;
+  padding: 4rem 8rem;
+}
+
+.preCadastroBg {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 0 auto;
+  padding: 8rem;
+}
+
+.preCadastroForm {
+  background: none;
+  color: #2d1834;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.preCadastroForm h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #2d1834;
+  font-family: "Georgia", serif;
+}
+
+.preCadastroForm p {
+  font-size: 1rem;
+  color: #7c3aed;
+  text-align: center;
+  width: 100%;
+}
+
+.radioBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #fff;
+  border: 1.5px solid #ede9e2;
+  border-radius: 12px;
+  padding: 1rem 1rem 1rem 1rem;
+  cursor: pointer;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(44, 24, 52, 0.03);
+}
+.radioBox:hover,
+.radioBox:has(input:checked) {
+  border: 1.5px solid #7c3aed;
+  box-shadow: 0 4px 16px rgba(124, 24, 52, 0.08);
+}
+.radioBox input[type="radio"] {
+  accent-color: #7c3aed;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.2rem;
+  cursor: pointer;
+  background: #fff;
+}
+.radioTitle {
+  font-weight: 700;
+  color: #2d1834;
+  font-size: 1.1rem;
+}
+.radioDesc {
+  display: block;
+  color: #2d1834;
+  font-size: 0.98rem;
+  margin-top: 0.2rem;
+}
+.infoBox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.2rem;
+  color: #7c3aed;
+  font-size: 1rem;
+}
+.infoIcon {
+  font-size: 1.1rem;
+}
