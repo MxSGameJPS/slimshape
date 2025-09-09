@@ -2,8 +2,7 @@
   width: 100%;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(124, 24, 52, 0.04);
-  position: sticky;
-  top: 0;
+  position: fixed;
   z-index: 100;
 }
 
@@ -20,6 +19,35 @@
   display: flex;
   align-items: center;
   text-decoration: none;
+}
+
+.logoText {
+  margin-left: 0.75rem;
+  font-size: 1rem;
+  font-weight: 800;
+  background: linear-gradient(
+    90deg,
+    #e7b944 20%,
+    #fffbe6 40%,
+    #e7b944 60%,
+    #7c1834 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 8.5s linear infinite;
+  letter-spacing: 1px;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: 0% center;
+  }
 }
 
 .nav {

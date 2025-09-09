@@ -9,10 +9,11 @@ export default function Header() {
           <Image
             src="/logo/logo.png"
             alt="SlimShape"
-            width={100}
-            height={40}
+            width={50}
+            height={50}
             priority
           />
+          <span className={styles.logoText}>Slim Shape Digital</span>
         </a>
         <nav className={styles.nav}>
           <a href="#solucao">Solução</a>
