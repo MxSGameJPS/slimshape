@@ -1,0 +1,97 @@
+.hero {
+  width: 100%;
+  background: linear-gradient(90deg, rgb(0, 37, 92) 0%, var(--bordo) 100%);
+  padding: 4rem 0 2rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.content {
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--dourado);
+  line-height: 1.1;
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.cta {
+  background: linear-gradient(90deg, #00bfa6 0%, #00e6d0 100%);
+  color: #fff;
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 191, 166, 0.08);
+  transition: background 0.2s, box-shadow 0.2s;
+  width: fit-content;
+}
+
+.cta:hover {
+  background: linear-gradient(90deg, var(--bordo) 0%, var(--dourado) 100%);
+  box-shadow: 0 4px 16px rgba(0, 191, 166, 0.16);
+}
+
+.collage {
+  display: flex;
+  gap: 1.5rem;
+  margin-left: 3rem;
+}
+
+.collageLeft {
+  flex: 1 1 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.collageRight {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: space-between;
+}
+
+.collageImg {
+  border-radius: 1.5rem;
+  object-fit: cover;
+  box-shadow: 0 8px 32px rgba(124, 24, 52, 0.1);
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .hero {
+    flex-direction: column;
+    padding: 2rem 0;
+  }
+  .collage {
+    flex-direction: column;
+    margin-left: 0;
+    margin-top: 2rem;
+    gap: 1rem;
+    align-items: center;
+  }
+  .collageLeft,
+  .collageRight {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .collageImg {
+    max-width: 90vw;
+    height: auto;
+  }
+}

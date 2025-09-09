@@ -1,0 +1,156 @@
+.depoimentoSection {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 4rem 1rem 4rem 1rem;
+}
+
+.titulo {
+  color: var(--violeta);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+
+.tituloPrincipal {
+  color: #1a1337;
+  font-size: 2.7rem;
+  font-weight: 800;
+  margin-bottom: 2.5rem;
+  font-family: inherit;
+}
+
+.carousel {
+  display: flex;
+  align-items: stretch;
+  gap: 2.5rem;
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.textoBox {
+  background: #f7f5f3;
+  border-radius: 1.2rem;
+  flex: 1 1 350px;
+  max-width: 620px;
+  padding: 2.2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #1a1337;
+}
+
+.textoBox strong {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 1.1rem;
+}
+
+.fotos {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.foto {
+  border-radius: 1.2rem;
+  overflow: hidden;
+  width: 420px;
+  height: 480px;
+  object-fit: cover;
+  position: relative;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(26, 19, 55, 0.07);
+}
+
+.fotoLabel {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  background: #00bfa6;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  padding: 0.2rem 0.8rem;
+}
+
+.carouselNav {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.carouselDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1cbe9;
+  border: none;
+  margin: 0 3px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.carouselDot.active {
+  background: var(--violeta);
+}
+
+.carouselArrows {
+  position: absolute;
+  top: 1.5rem;
+  right: 2.5rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.arrowBtn {
+  background: #f7f5f3;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--violeta);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26, 19, 55, 0.04);
+  transition: background 0.2s;
+}
+.arrowBtn:hover {
+  background: var(--violeta);
+  color: #fff;
+}
+
+@media (max-width: 900px) {
+  .carousel {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .fotos {
+    flex-direction: row;
+    gap: 0.7rem;
+  }
+  .foto {
+    width: 40vw;
+    height: 180px;
+    min-width: 120px;
+  }
+  .textoBox {
+    max-width: 100%;
+    font-size: 1rem;
+    padding: 1.2rem 1rem;
+  }
+}
+
+.nota {
+  color: #222;
+  font-size: 0.95rem;
+  margin-top: 2.5rem;
+  text-align: center;
+}
