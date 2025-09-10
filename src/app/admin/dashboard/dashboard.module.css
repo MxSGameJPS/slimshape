@@ -1,0 +1,344 @@
+/* Análises - Grid e Box dos gráficos */
+.analisesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 24px;
+}
+.analiseBox {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+  border: 1px solid #e5e7eb;
+}
+.analiseTitle {
+  font-size: 1.08em;
+  font-weight: 600;
+  color: #22223b;
+  margin-bottom: 8px;
+}
+.analiseChart {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1100px) {
+  .analisesGrid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+/* Pacientes - Grid e Card */
+.pacientesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.pacienteCard {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border 0.2s, transform 0.15s;
+}
+.pacienteCard:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
+  border: 1.5px solid #6366f1;
+  transform: translateY(-2px) scale(1.02);
+}
+.pacienteCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15em;
+  font-weight: 600;
+  color: #22223b;
+  margin-bottom: 8px;
+}
+.pacienteIcon {
+  color: #6366f1;
+  font-size: 1.2em;
+}
+.pacienteNome {
+  font-weight: 600;
+}
+.pacienteCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+.pacienteSigla {
+  background: #e0e7ef;
+  color: #22223b;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+.pacienteInfo {
+  color: #8d99ae;
+  font-size: 0.98em;
+}
+.pacientePlano {
+  align-self: flex-end;
+  font-size: 0.98em;
+  font-weight: 600;
+  padding: 4px 16px;
+  border-radius: 8px;
+  margin-top: 8px;
+  margin-bottom: 2px;
+}
+.premium {
+  background: #6366f1;
+  color: #fff;
+}
+.basic {
+  background: #e0e7ef;
+  color: #22223b;
+}
+
+@media (max-width: 1100px) {
+  .pacientesGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 700px) {
+  .pacientesGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .pacienteCard {
+    min-width: 0;
+    padding: 18px 10px;
+  }
+}
+/* Wrapper geral */
+.dashboardWrapper {
+  display: flex;
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 0 0 0;
+  min-height: 100vh;
+}
+.logo {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #22223b;
+  margin-bottom: 4px;
+  padding-left: 32px;
+}
+.sidebarDesc {
+  color: #8d99ae;
+  font-size: 0.95em;
+  margin-bottom: 32px;
+  padding-left: 32px;
+}
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 32px;
+  color: #22223b;
+  text-decoration: none;
+  font-size: 1.08em;
+  border-left: 3px solid transparent;
+  transition: background 0.2s, border 0.2s;
+  cursor: pointer;
+}
+.menuItem:hover,
+.menuItem.active {
+  background: #f1f5f9;
+  border-left: 3px solid #6366f1;
+  color: #6366f1;
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  padding: 40px 40px 40px 40px;
+}
+.pageTitle {
+  font-size: 2em;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: #22223b;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Cards */
+.cardsRow {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 24px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+}
+.cardTitle {
+  color: #8d99ae;
+  font-size: 1.05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cardValue {
+  font-size: 2em;
+  font-weight: 700;
+  color: #22223b;
+}
+.cardIcon {
+  font-size: 1.1em;
+  color: #4ade80;
+}
+
+/* Tabelas */
+.tablesRow {
+  display: flex;
+  gap: 24px;
+  margin-top: 8px;
+}
+.tableBox {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 24px 24px 16px 24px;
+  flex: 1;
+  min-width: 340px;
+  display: flex;
+  flex-direction: column;
+}
+.tableTitle {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: #22223b;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.98em;
+}
+.table th,
+.table td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  text-align: left;
+}
+.table th {
+  background: #f1f5f9;
+  color: #22223b;
+  font-weight: 600;
+}
+.table td {
+  color: #22223b;
+}
+
+/* Status */
+.statusConcluido {
+  background: #22223b;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 12px;
+  font-size: 0.95em;
+  font-weight: 500;
+  display: inline-block;
+}
+.statusPendente {
+  background: #e0e7ef;
+  color: #22223b;
+  border-radius: 8px;
+  padding: 2px 12px;
+  font-size: 0.95em;
+  font-weight: 500;
+  display: inline-block;
+}
+.statusAtivo {
+  background: #6366f1;
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 12px;
+  font-size: 0.95em;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Barra de progresso */
+.progressBar {
+  background: #e0e7ef;
+  border-radius: 8px;
+  width: 80px;
+  height: 8px;
+  margin-bottom: 2px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.progress {
+  background: #6366f1;
+  height: 100%;
+  border-radius: 8px;
+}
+
+@media (max-width: 1100px) {
+  .cardsRow,
+  .tablesRow {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .mainContent {
+    padding: 32px 10px 32px 10px;
+  }
+  .sidebar {
+    min-width: 180px;
+    width: 180px;
+  }
+}

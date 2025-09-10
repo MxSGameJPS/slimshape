@@ -6,7 +6,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const depoimentos = [
   {
-    nome: "Keila",
+    nome: "Camila",
     resultado: "- 6,5kg em 1 mês",
     texto:
       "Sempre quis ter hábitos saudáveis, mas com duas filhas era difícil encontrar uma dieta que encaixasse na rotina e que funcionasse também para elas, sem ser super restritiva. A nutricionista montou um cardápio super bacana e ilustrativo que facilitou muito! Hoje, lido melhor com a compulsão e me sinto disposta para me exercitar. Isso melhorou meu tempo em família, e minhas filhas estão felizes com as mudanças!",
