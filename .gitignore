@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# dashboard de exemplo
+/public/dashboard/
+
 # production
 /build
 
