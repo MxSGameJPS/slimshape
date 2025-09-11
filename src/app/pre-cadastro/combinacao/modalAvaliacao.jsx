@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef } from "react";
+
 import styles from "./modal.module.css";
 import {
   FaChevronLeft,
@@ -10,11 +11,36 @@ import {
 
 function ModalAvaliacao({ open, onClose }) {
   const [step, setStep] = useState(1);
-  // Estados para arquivos
+  // Estados para arquivos locais
   const [examesFiles, setExamesFiles] = useState([]);
   const [diagFiles, setDiagFiles] = useState([]);
+  // Estados para URLs dos arquivos no Cloudinary
+  const [examesUrls, setExamesUrls] = useState([]);
+  const [diagUrls, setDiagUrls] = useState([]);
   const examesInputRef = useRef(null);
   const diagInputRef = useRef(null);
+
+  // Função para upload de múltiplos arquivos para Cloudinary
+  async function uploadFilesToCloudinary(files, setUrls) {
+    const urls = [];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "slimshape_unsigned");
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/slimshape/auto/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        urls.push(data.secure_url);
+      }
+    }
+    setUrls(urls);
+  }
 
   if (!open) return null;
 
@@ -33,10 +59,14 @@ function ModalAvaliacao({ open, onClose }) {
     if (diagInputRef.current) diagInputRef.current.click();
   }
   function handleExamesChange(e) {
-    setExamesFiles(Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    setExamesFiles(files);
+    if (files.length > 0) uploadFilesToCloudinary(files, setExamesUrls);
   }
   function handleDiagChange(e) {
-    setDiagFiles(Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    setDiagFiles(files);
+    if (files.length > 0) uploadFilesToCloudinary(files, setDiagUrls);
   }
 
   // Funções auxiliares para título, progresso e divisores
@@ -617,14 +647,84 @@ function ModalAvaliacao({ open, onClose }) {
             {step === 6 && (
               <form
                 className={styles.form}
-                onSubmit={(e) => {
-                  e.preventDefault(); /* aqui você pode enviar os dados finais */
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target;
+                  // Montar JSON e enviar para /api/pacientes
+                  const getValue = (name) =>
+                    form.querySelector(`[name="${name}"]`)?.value || "";
+                  const getChecked = (name) =>
+                    form.querySelector(`[name="${name}"]`)?.checked || false;
+                  if (
+                    examesFiles.length > 0 &&
+                    examesUrls.length !== examesFiles.length
+                  ) {
+                    alert(
+                      "Aguarde o upload dos arquivos de exames antes de enviar."
+                    );
+                    return;
+                  }
+                  if (
+                    diagFiles.length > 0 &&
+                    diagUrls.length !== diagFiles.length
+                  ) {
+                    alert(
+                      "Aguarde o upload dos arquivos de diagnósticos antes de enviar."
+                    );
+                    return;
+                  }
+                  const payload = {
+                    nome: getValue("nome"),
+                    data_nascimento: getValue("data_nascimento"),
+                    genero: getValue("genero"),
+                    cpf: getValue("cpf"),
+                    telefone: getValue("telefone"),
+                    email: getValue("email"),
+                    endereco: getValue("endereco"),
+                    cidade: getValue("cidade"),
+                    estado: getValue("estado"),
+                    cep: getValue("cep"),
+                    // Exemplo de campos numéricos:
+                    peso_atual: Number(getValue("peso_atual")),
+                    altura: Number(getValue("altura")),
+                    // ...adicione outros campos numéricos aqui se houver...
+                    exames_arquivos: examesUrls,
+                    diagnosticos_arquivos: diagUrls,
+                    consentimento_telemedicina: getChecked(
+                      "consentimentoTelemedicina"
+                    ),
+                    consentimento_lgpd: getChecked("consentimentoLGPD"),
+                    termos_uso: getChecked("termosUso"),
+                  };
+                  try {
+                    const response = await fetch(
+                      "https://slimshapeapi.vercel.app/api/pacientes",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      }
+                    );
+                    const data = await response.json();
+                    if (data.success) {
+                      alert("Avaliação enviada com sucesso!");
+                      if (onClose) onClose();
+                    } else {
+                      alert(data.error || "Erro ao enviar avaliação.");
+                    }
+                  } catch (err) {
+                    alert("Erro de conexão com o servidor.");
+                  }
                 }}
               >
                 <div className={styles.cardDesc}>{stepSubtitles[5]}</div>
                 <div className={styles.termosCard}>
                   <label className={styles.termoLabel}>
-                    <input type="checkbox" required />
+                    <input
+                      type="checkbox"
+                      required
+                      name="consentimentoTelemedicina"
+                    />
                     <div>
                       Consentimento para Telemedicina *<br />
                       <span>
@@ -637,7 +737,7 @@ function ModalAvaliacao({ open, onClose }) {
                     </div>
                   </label>
                   <label className={styles.termoLabel}>
-                    <input type="checkbox" required />
+                    <input type="checkbox" required name="consentimentoLGPD" />
                     <div>
                       Consentimento para Tratamento de Dados (LGPD) *<br />
                       <span>
@@ -650,7 +750,7 @@ function ModalAvaliacao({ open, onClose }) {
                     </div>
                   </label>
                   <label className={styles.termoLabel}>
-                    <input type="checkbox" required />
+                    <input type="checkbox" required name="termosUso" />
                     <div>
                       Termos de Uso da Plataforma *<br />
                       <span>
