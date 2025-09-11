@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 
 import styles from "./modal.module.css";
 import {
@@ -9,8 +15,128 @@ import {
   FaUser,
 } from "react-icons/fa";
 
-function ModalAvaliacao({ open, onClose }) {
-  const [step, setStep] = useState(1);
+// Top-level stable components to avoid remounts when declared inside the
+// ModalAvaliacao function.
+function ModalHeader({ step, stepIcons, stepTitles, onClose }) {
+  return (
+    <div className={styles.modalHeader}>
+      <div className={styles.modalTitle}>
+        {stepIcons[step - 1]} {stepTitles[step - 1]}
+      </div>
+      <button className={styles.closeBtn} onClick={onClose}>
+        &times;
+      </button>
+    </div>
+  );
+}
+
+function ModalProgress({ step, progressPercents }) {
+  return (
+    <div className={styles.modalProgress}>
+      <span className={styles.modalProgressText}>Etapa {step} de 6</span>
+      <div className={styles.modalProgressBarWrap}>
+        <div className={styles.modalProgressBarBg}>
+          <div
+            className={styles.modalProgressBarFg}
+            style={{ width: `${progressPercents[step - 1]}%` }}
+          ></div>
+        </div>
+      </div>
+      <span className={styles.modalProgressPercent}>
+        {step === 6 ? "100% concluído" : `${progressPercents[step - 1]}%`}
+      </span>
+    </div>
+  );
+}
+
+function ModalDivider() {
+  return <div className={styles.modalDivider}></div>;
+}
+
+function ModalCard({ children }) {
+  return <div className={styles.modalCard}>{children}</div>;
+}
+
+function ModalFooter({
+  onPrev,
+  onNext,
+  isLast,
+  isFirst,
+  nextLabel,
+  prevLabel,
+  disabled,
+}) {
+  return (
+    <div className={styles.modalFooter}>
+      <button
+        type="button"
+        className={styles.btnSec}
+        onClick={onPrev}
+        disabled={isFirst}
+      >
+        <FaChevronLeft /> {prevLabel || "Anterior"}
+      </button>
+      <button
+        type="submit"
+        className={isLast ? styles.btnFinal : styles.btnPri}
+        disabled={disabled}
+      >
+        {isLast ? (
+          <>
+            Enviar Avaliação{" "}
+            <span style={{ fontSize: 20, marginLeft: 8 }}>✔️</span>
+          </>
+        ) : (
+          <>
+            Próximo <FaChevronRight />
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
+// Controlled input with local state to avoid DOM replacement and caret loss
+const InputControlled = React.memo(
+  React.forwardRef(function InputControlled(
+    { name, value, setFormData, placeholder, required, type = "text", ...rest },
+    ref
+  ) {
+    const [local, setLocal] = React.useState(value ?? "");
+    React.useEffect(() => {
+      setLocal(value ?? "");
+    }, [value]);
+    return (
+      <input
+        {...rest}
+        ref={ref}
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        required={required}
+        value={local}
+        onChange={(e) => {
+          const v = e.target.value;
+          setLocal(v);
+          // sync up to parent state
+          setFormData((prev) => ({
+            ...prev,
+            [name]: v !== undefined && v !== null ? String(v) : "",
+          }));
+        }}
+      />
+    );
+  })
+);
+
+function ModalAvaliacao({
+  open,
+  onClose,
+  formData,
+  setFormData,
+  step,
+  setStep,
+}) {
   // Estados para arquivos locais
   const [examesFiles, setExamesFiles] = useState([]);
   const [diagFiles, setDiagFiles] = useState([]);
@@ -19,30 +145,213 @@ function ModalAvaliacao({ open, onClose }) {
   const [diagUrls, setDiagUrls] = useState([]);
   const examesInputRef = useRef(null);
   const diagInputRef = useRef(null);
+  const renderCountRef = useRef(0);
+  const modalContentRef = useRef(null);
+  const nomeInputRef = useRef(null);
+  const dataNascInputRef = useRef(null);
+  const prevNomeNodeRef = useRef(null);
+  const prevDataNascNodeRef = useRef(null);
+  // estados para upload/progresso
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
 
-  // Função para upload de múltiplos arquivos para Cloudinary
-  async function uploadFilesToCloudinary(files, setUrls) {
-    const urls = [];
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "slimshape_unsigned");
-      const res = await fetch(
-        "https://api.cloudinary.com/v1_1/slimshape/auto/upload",
-        {
-          method: "POST",
-          body: formData,
-        }
+  useEffect(() => {
+    console.log("ModalAvaliacao mounted");
+    return () => console.log("ModalAvaliacao unmounted");
+  }, []);
+
+  // increment render counter on every render
+  renderCountRef.current += 1;
+  // small log to see renders; will show in browser console
+  console.log(
+    "ModalAvaliacao render #",
+    renderCountRef.current,
+    "open=",
+    open,
+    "step=",
+    step
+  );
+
+  // Helper: comprime imagens para reduzir upload (usa canvas)
+  async function compressImageFile(file, maxWidth = 1600, quality = 0.82) {
+    try {
+      if (!file.type.startsWith("image/")) return file;
+      const bitmap = await createImageBitmap(file);
+      const ratio = Math.min(1, maxWidth / bitmap.width);
+      const width = Math.round(bitmap.width * ratio);
+      const height = Math.round(bitmap.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bitmap, 0, 0, width, height);
+      // prefer jpeg for compression if original is png and not transparent
+      const mime = file.type === "image/png" ? "image/jpeg" : file.type;
+      const blob = await new Promise((res) =>
+        canvas.toBlob(res, mime, quality)
       );
-      if (res.ok) {
-        const data = await res.json();
-        urls.push(data.secure_url);
-      }
+      if (!blob) return file;
+      // manter nome e tipo coerente
+      return new File([blob], file.name.replace(/\.png$/i, ".jpg"), {
+        type: blob.type,
+      });
+    } catch (err) {
+      console.warn("compressImageFile failed, using original", err);
+      return file;
     }
-    setUrls(urls);
   }
 
-  if (!open) return null;
+  // Helper: upload único com progresso usando XMLHttpRequest
+  function uploadSingleWithProgress(file, onProgress) {
+    return new Promise(async (resolve, reject) => {
+      const start = Date.now();
+      const keyLog = `${file.name}-${file.size}-${file.lastModified}`;
+      console.log("uploadSingleWithProgress start", keyLog);
+      try {
+        const resourceType =
+          file.type && file.type.startsWith("image/") ? "image" : "raw";
+        // Only compress very large images to avoid delaying typical uploads
+        // (set high threshold so 2MB files are NOT compressed)
+        const shouldCompress =
+          resourceType === "image" && file.size > 5_000_000; // 5MB
+        const fileToSend = shouldCompress
+          ? await compressImageFile(file)
+          : file;
+
+        if (shouldCompress)
+          console.log(
+            "compressed",
+            keyLog,
+            "origSize",
+            file.size,
+            "newType",
+            fileToSend.type,
+            "newSize",
+            fileToSend.size
+          );
+
+        const fd = new FormData();
+        fd.append("file", fileToSend);
+        fd.append("upload_preset", "slimshape_unsigned");
+        fd.append("resource_type", resourceType);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open(
+          "POST",
+          "https://api.cloudinary.com/v1_1/slimshape/auto/upload"
+        );
+        xhr.upload.onprogress = (e) => {
+          try {
+            // log raw progress for diagnostics (loaded/total may be undefined)
+            console.log(
+              "upload progress",
+              keyLog,
+              "loaded",
+              e.loaded,
+              "total",
+              e.total
+            );
+            if (e.lengthComputable && typeof onProgress === "function") {
+              const pct = Math.round((e.loaded / e.total) * 100);
+              onProgress(pct);
+            }
+          } catch (err) {
+            console.warn("progress handler error", err);
+          }
+        };
+        // set a reasonable timeout (120s) to avoid hanging uploads
+        xhr.timeout = 120000;
+        xhr.ontimeout = () => {
+          console.log("upload timeout", keyLog);
+          reject(new Error("upload timeout"));
+        };
+        xhr.onload = () => {
+          const took = Date.now() - start;
+          console.log(
+            "uploadSingleWithProgress done",
+            keyLog,
+            "status",
+            xhr.status,
+            "took_ms",
+            took
+          );
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve({ url: data.secure_url, data });
+            } catch (err) {
+              reject(err);
+            }
+          } else {
+            reject(new Error(`upload failed status ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => {
+          console.log("uploadSingleWithProgress network error", keyLog);
+          reject(new Error("network error"));
+        };
+        xhr.send(fd);
+      } catch (err) {
+        console.log("uploadSingleWithProgress exception", keyLog, err);
+        reject(err);
+      }
+    });
+  }
+
+  // Função para upload de múltiplos arquivos para Cloudinary (paralelo com progresso)
+  async function uploadFilesToCloudinary(files, setUrls) {
+    setIsUploading(true);
+    setUploadProgress((p) => ({ ...p }));
+    const urls = [];
+    // concurrency limit
+    const CONCURRENCY = 3;
+    const queue = files.slice();
+    const running = [];
+
+    function next() {
+      if (queue.length === 0) return Promise.resolve();
+      const file = queue.shift();
+      const key = `${file.name}-${file.size}-${file.lastModified}`;
+      const p = uploadSingleWithProgress(file, (pct) => {
+        setUploadProgress((prev) => ({ ...prev, [key]: pct }));
+      })
+        .then((res) => ({ key, url: res.url }))
+        .catch((err) => {
+          console.error("uploadSingleWithProgress error", file.name, err);
+          setUploadProgress((prev) => ({ ...prev, [key]: -1 }));
+          return { key, url: null };
+        })
+        .finally(() => {
+          // remove from running
+          const idx = running.indexOf(p);
+          if (idx >= 0) running.splice(idx, 1);
+        });
+
+      running.push(p);
+      let r = Promise.resolve();
+      if (running.length >= CONCURRENCY) {
+        // wait for any to finish
+        r = Promise.race(running);
+      }
+      return r
+        .then(() => p)
+        .then((res) => {
+          if (res && res.url) urls.push(res.url);
+          return next();
+        });
+    }
+
+    try {
+      // start initial workers
+      const starters = [];
+      for (let i = 0; i < CONCURRENCY && i < files.length; i++)
+        starters.push(next());
+      await Promise.all(starters);
+      setUrls(urls);
+    } finally {
+      setIsUploading(false);
+    }
+  }
 
   function handleNext(e) {
     e.preventDefault();
@@ -52,6 +361,40 @@ function ModalAvaliacao({ open, onClose }) {
     e.preventDefault();
     setStep((s) => Math.max(s - 1, 1));
   }
+
+  // Handlers para inputs controlados
+  const handleInputChange = useCallback(
+    (e) => {
+      const { name, value, type, checked } = e.target;
+      console.log(
+        "handleInputChange ->",
+        name,
+        "=",
+        type === "checkbox" ? checked : value
+      );
+      if (type === "checkbox" && e.target.dataset.group) {
+        // Checkbox de grupo (array)
+        const group = e.target.dataset.group;
+        setFormData((prev) => {
+          const arr = Array.isArray(prev[group]) ? prev[group] : [];
+          if (checked) {
+            return { ...prev, [group]: [...arr, value] };
+          } else {
+            return { ...prev, [group]: arr.filter((v) => v !== value) };
+          }
+        });
+      } else if (type === "checkbox") {
+        setFormData((prev) => ({ ...prev, [name]: !!checked }));
+      } else {
+        // Sempre string para inputs normais
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value !== undefined && value !== null ? String(value) : "",
+        }));
+      }
+    },
+    [setFormData]
+  );
   function handleExamesClick() {
     if (examesInputRef.current) examesInputRef.current.click();
   }
@@ -69,147 +412,171 @@ function ModalAvaliacao({ open, onClose }) {
     if (files.length > 0) uploadFilesToCloudinary(files, setDiagUrls);
   }
 
-  // Funções auxiliares para título, progresso e divisores
-  const stepTitles = [
-    "Dados Pessoais",
-    "Histórico de Saúde",
-    "Queixa Principal",
-    "Avaliação do Paciente",
-    "Avaliação do Paciente",
-    "Avaliação do Paciente",
-  ];
-  const stepIcons = [
-    <FaUser key="user" />, // 1
-    <FaHeartbeat key="heart" />, // 2
-    <span key="q" style={{ fontSize: "1.2em", marginRight: 6 }}>
-      📝
-    </span>, // 3
-    <span key="nutri" role="img" aria-label="nutri">
-      ⚖️
-    </span>, // 4
-    <span key="diag" role="img" aria-label="diagnóstico">
-      🩺
-    </span>, // 5
-    <span key="termos" role="img" aria-label="termos">
-      📝
-    </span>, // 6
-  ];
-  const stepSubtitles = [
-    "Preencha seus dados para começarmos sua avaliação",
-    "Informações sobre seu histórico médico e familiar",
-    "Conte-nos sobre o que te trouxe aqui hoje",
-    "Informações sobre seu peso, alimentação e atividade física",
-    "Informações sobre exames recentes e diagnósticos anteriores",
-    "Leia e aceite os termos para finalizar sua avaliação",
-  ];
-  const progressPercents = [17, 33, 50, 67, 83, 100];
+  // Log de foco genérico para diagnóstico
+  useEffect(() => {
+    const el = modalContentRef.current;
+    if (!el) return;
+    function onFocusIn(e) {
+      const name = e.target && e.target.name ? e.target.name : e.target.tagName;
+      console.log("focusin ->", name, "render#", renderCountRef.current);
+    }
+    function onFocusOut(e) {
+      const name = e.target && e.target.name ? e.target.name : e.target.tagName;
+      console.log("focusout ->", name, "render#", renderCountRef.current);
+    }
+    el.addEventListener("focusin", onFocusIn);
+    el.addEventListener("focusout", onFocusOut);
+    return () => {
+      el.removeEventListener("focusin", onFocusIn);
+      el.removeEventListener("focusout", onFocusOut);
+    };
+  }, []);
 
-  // Header, progress, divider, card, footer
-  function ModalHeader() {
-    return (
-      <div className={styles.modalHeader}>
-        <div className={styles.modalTitle}>
-          {stepIcons[step - 1]} {stepTitles[step - 1]}
-        </div>
-        <button className={styles.closeBtn} onClick={onClose}>
-          &times;
-        </button>
-      </div>
-    );
-  }
-  function ModalProgress() {
-    return (
-      <div className={styles.modalProgress}>
-        <span className={styles.modalProgressText}>Etapa {step} de 6</span>
-        <div className={styles.modalProgressBarWrap}>
-          <div className={styles.modalProgressBarBg}>
-            <div
-              className={styles.modalProgressBarFg}
-              style={{ width: `${progressPercents[step - 1]}%` }}
-            ></div>
-          </div>
-        </div>
-        <span className={styles.modalProgressPercent}>
-          {step === 6 ? "100% concluído" : `${progressPercents[step - 1]}%`}
-        </span>
-      </div>
-    );
-  }
-  function ModalDivider() {
-    return <div className={styles.modalDivider}></div>;
-  }
-  function ModalCard({ children }) {
-    return <div className={styles.modalCard}>{children}</div>;
-  }
-  function ModalFooter({
-    onPrev,
-    onNext,
-    isLast,
-    isFirst,
-    nextLabel,
-    prevLabel,
-    submitLabel,
-  }) {
-    return (
-      <div className={styles.modalFooter}>
-        <button
-          type="button"
-          className={styles.btnSec}
-          onClick={onPrev}
-          disabled={isFirst}
-        >
-          <FaChevronLeft /> {prevLabel || "Anterior"}
-        </button>
-        <button
-          type="submit"
-          className={isLast ? styles.btnFinal : styles.btnPri}
-        >
-          {isLast ? (
-            <>
-              Enviar Avaliação{" "}
-              <span style={{ fontSize: 20, marginLeft: 8 }}>✔️</span>
-            </>
-          ) : (
-            <>
-              Próximo <FaChevronRight />
-            </>
-          )}
-        </button>
-      </div>
-    );
-  }
+  // Debug: check if the actual DOM node for key inputs changes between renders
+  useEffect(() => {
+    try {
+      const active = document && document.activeElement;
+      const activeName =
+        active && active.name ? active.name : active && active.tagName;
+      console.log(
+        "activeElement ->",
+        activeName,
+        "render#",
+        renderCountRef.current
+      );
+
+      if (
+        prevNomeNodeRef.current &&
+        prevNomeNodeRef.current !== nomeInputRef.current
+      ) {
+        console.log("nome input NODE CHANGED", {
+          prev: prevNomeNodeRef.current,
+          now: nomeInputRef.current,
+          render: renderCountRef.current,
+        });
+      }
+      if (
+        prevDataNascNodeRef.current &&
+        prevDataNascNodeRef.current !== dataNascInputRef.current
+      ) {
+        console.log("data_nascimento input NODE CHANGED", {
+          prev: prevDataNascNodeRef.current,
+          now: dataNascInputRef.current,
+          render: renderCountRef.current,
+        });
+      }
+
+      prevNomeNodeRef.current = nomeInputRef.current;
+      prevDataNascNodeRef.current = dataNascInputRef.current;
+    } catch (err) {
+      console.log("debug effect error", err);
+    }
+  });
+
+  // Funções auxiliares para título, progresso e divisores
+  const stepTitles = useMemo(
+    () => [
+      "Dados Pessoais",
+      "Histórico de Saúde",
+      "Queixa Principal",
+      "Avaliação do Paciente",
+      "Avaliação do Paciente",
+      "Avaliação do Paciente",
+    ],
+    []
+  );
+  const stepIcons = useMemo(
+    () => [
+      <FaUser key="user" />, // 1
+      <FaHeartbeat key="heart" />, // 2
+      <span key="q" style={{ fontSize: "1.2em", marginRight: 6 }}>
+        📝
+      </span>, // 3
+      <span key="nutri" role="img" aria-label="nutri">
+        ⚖️
+      </span>, // 4
+      <span key="diag" role="img" aria-label="diagnóstico">
+        🩺
+      </span>, // 5
+      <span key="termos" role="img" aria-label="termos">
+        📝
+      </span>, // 6
+    ],
+    []
+  );
+  const stepSubtitles = useMemo(
+    () => [
+      "Preencha seus dados para começarmos sua avaliação",
+      "Informações sobre seu histórico médico e familiar",
+      "Conte-nos sobre o que te trouxe aqui hoje",
+      "Informações sobre seu peso, alimentação e atividade física",
+      "Informações sobre exames recentes e diagnósticos anteriores",
+      "Leia e aceite os termos para finalizar sua avaliação",
+    ],
+    []
+  );
+  const progressPercents = useMemo(() => [17, 33, 50, 67, 83, 100], []);
+
+  // ...existing code...
 
   // Renderização principal
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
-        <ModalHeader />
-        <ModalProgress />
+    <div
+      className={styles.modalOverlay}
+      style={{ display: open ? "flex" : "none" }}
+    >
+      <div className={styles.modalContent} ref={modalContentRef}>
+        <ModalHeader
+          step={step}
+          stepIcons={stepIcons}
+          stepTitles={stepTitles}
+          onClose={onClose}
+        />
+        <ModalProgress step={step} progressPercents={progressPercents} />
         <ModalDivider />
         <div className={styles.modalBody}>
           <ModalCard>
             {/* ... todo o conteúdo dos steps permanece igual ... */}
             {step === 1 && (
-              <form className={styles.form} onSubmit={handleNext}>
+              <form
+                className={styles.form}
+                onSubmit={handleNext}
+                autoComplete="off"
+              >
                 <div className={styles.cardDesc}>{stepSubtitles[0]}</div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Nome Completo *</label>
-                    <input
-                      type="text"
+                    <InputControlled
+                      ref={nomeInputRef}
+                      name="nome"
                       placeholder="Seu nome completo"
                       required
+                      value={formData.nome}
+                      setFormData={setFormData}
                     />
                   </div>
                   <div className={styles.col}>
                     <label>Data de Nascimento *</label>
-                    <input type="text" placeholder="dd/mm/aaaa" required />
+                    <InputControlled
+                      ref={dataNascInputRef}
+                      name="data_nascimento"
+                      placeholder="dd/mm/aaaa"
+                      required
+                      value={formData.data_nascimento}
+                      setFormData={setFormData}
+                    />
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.col}>
                     <label>Gênero *</label>
-                    <select required>
+                    <select
+                      name="genero"
+                      required
+                      value={formData.genero}
+                      onChange={handleInputChange}
+                    >
                       <option value="">Selecione seu gênero</option>
                       <option value="feminino">Feminino</option>
                       <option value="masculino">Masculino</option>
@@ -218,41 +585,85 @@ function ModalAvaliacao({ open, onClose }) {
                   </div>
                   <div className={styles.col}>
                     <label>CPF *</label>
-                    <input type="text" placeholder="000.000.000-00" required />
+                    <input
+                      type="text"
+                      name="cpf"
+                      placeholder="000.000.000-00"
+                      required
+                      value={formData.cpf}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.col}>
                     <label>Telefone *</label>
-                    <input type="text" placeholder="(11) 99999-9999" required />
+                    <input
+                      type="text"
+                      name="telefone"
+                      placeholder="(11) 99999-9999"
+                      required
+                      value={formData.telefone}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className={styles.col}>
                     <label>E-mail *</label>
-                    <input type="email" placeholder="seu@email.com" required />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="seu@email.com"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Endereço Completo *</label>
-                    <input
-                      type="text"
+                    <InputControlled
+                      name="endereco"
                       placeholder="Rua, número, complemento"
                       required
+                      value={formData.endereco}
+                      setFormData={setFormData}
                     />
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.col}>
                     <label>Cidade *</label>
-                    <input type="text" placeholder="Sua cidade" required />
+                    <input
+                      type="text"
+                      name="cidade"
+                      placeholder="Sua cidade"
+                      required
+                      value={formData.cidade}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className={styles.colSmall}>
                     <label>Estado *</label>
-                    <input type="text" placeholder="UF" required />
+                    <input
+                      type="text"
+                      name="estado"
+                      placeholder="UF"
+                      required
+                      value={formData.estado}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className={styles.colSmall}>
                     <label>CEP *</label>
-                    <input type="text" placeholder="00000-000" required />
+                    <input
+                      type="text"
+                      name="cep"
+                      placeholder="00000-000"
+                      required
+                      value={formData.cep}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <ModalFooter
@@ -264,7 +675,11 @@ function ModalAvaliacao({ open, onClose }) {
               </form>
             )}
             {step === 2 && (
-              <form className={styles.form} onSubmit={handleNext}>
+              <form
+                className={styles.form}
+                onSubmit={handleNext}
+                autoComplete="off"
+              >
                 <div className={styles.cardDesc}>{stepSubtitles[1]}</div>
                 {/* Histórico Médico Pessoal */}
                 <div className={styles.row} style={{ flexWrap: "wrap" }}>
@@ -273,49 +688,161 @@ function ModalAvaliacao({ open, onClose }) {
                       <b>Histórico Médico Pessoal</b>
                     </label>
                     <div>
-                      <input type="checkbox" /> Diabetes
+                      <input
+                        type="checkbox"
+                        name="diabetes"
+                        data-group="historico_medico_pessoal"
+                        value="Diabetes"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Diabetes"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Diabetes
                     </div>
                     <div>
-                      <input type="checkbox" /> Colesterol alto
+                      <input
+                        type="checkbox"
+                        name="colesterol_alto"
+                        data-group="historico_medico_pessoal"
+                        value="Colesterol alto"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Colesterol alto"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Colesterol alto
                     </div>
                     <div>
-                      <input type="checkbox" /> AVC / Derrame
+                      <input
+                        type="checkbox"
+                        name="avc"
+                        data-group="historico_medico_pessoal"
+                        value="AVC / Derrame"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "AVC / Derrame"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      AVC / Derrame
                     </div>
                     <div>
-                      <input type="checkbox" /> Obesidade
+                      <input
+                        type="checkbox"
+                        name="obesidade"
+                        data-group="historico_medico_pessoal"
+                        value="Obesidade"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Obesidade"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Obesidade
                     </div>
                     <div>
-                      <input type="checkbox" /> Câncer (especificar)
+                      <input
+                        type="checkbox"
+                        name="cancer"
+                        data-group="historico_medico_pessoal"
+                        value="Câncer (especificar)"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Câncer (especificar)"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Câncer (especificar)
                     </div>
                     <div>
-                      <input type="checkbox" /> Alergias graves (especificar)
+                      <input
+                        type="checkbox"
+                        name="alergias_graves"
+                        data-group="historico_medico_pessoal"
+                        value="Alergias graves (especificar)"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Alergias graves (especificar)"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Alergias graves (especificar)
                     </div>
                   </div>
                   <div className={styles.col}>
                     <label>&nbsp;</label>
                     <div>
-                      <input type="checkbox" /> Hipertensão arterial
+                      <input
+                        type="checkbox"
+                        name="hipertensao"
+                        data-group="historico_medico_pessoal"
+                        value="Hipertensão arterial"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Hipertensão arterial"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Hipertensão arterial
                     </div>
                     <div>
-                      <input type="checkbox" /> Doença cardíaca
+                      <input
+                        type="checkbox"
+                        name="doenca_cardiaca"
+                        data-group="historico_medico_pessoal"
+                        value="Doença cardíaca"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Doença cardíaca"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Doença cardíaca
                     </div>
                     <div>
-                      <input type="checkbox" /> Asma
+                      <input
+                        type="checkbox"
+                        name="asma"
+                        data-group="historico_medico_pessoal"
+                        value="Asma"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Asma"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Asma
                     </div>
                     <div>
-                      <input type="checkbox" /> Hipotireoidismo /
-                      Hipertireoidismo
+                      <input
+                        type="checkbox"
+                        name="hipotireoidismo"
+                        data-group="historico_medico_pessoal"
+                        value="Hipotireoidismo / Hipertireoidismo"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Hipotireoidismo / Hipertireoidismo"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Hipotireoidismo / Hipertireoidismo
                     </div>
                     <div>
-                      <input type="checkbox" /> Depressão / Ansiedade
+                      <input
+                        type="checkbox"
+                        name="depressao"
+                        data-group="historico_medico_pessoal"
+                        value="Depressão / Ansiedade"
+                        checked={formData.historico_medico_pessoal.includes(
+                          "Depressão / Ansiedade"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Depressão / Ansiedade
                     </div>
                   </div>
                 </div>
                 <div className={styles.row}>
                   <textarea
                     className={styles.colFull}
+                    name="historico_medico_pessoal_outros"
                     placeholder="Outras condições não listadas acima..."
                     rows={2}
+                    value={formData.historico_medico_pessoal_outros}
+                    onChange={handleInputChange}
                   ></textarea>
                 </div>
                 {/* Histórico Médico Familiar */}
@@ -325,61 +852,153 @@ function ModalAvaliacao({ open, onClose }) {
                       <b>Histórico Médico Familiar</b>
                     </label>
                     <div>
-                      <input type="checkbox" /> Diabetes
+                      <input
+                        type="checkbox"
+                        name="diabetes_fam"
+                        data-group="historico_medico_familiar"
+                        value="Diabetes"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Diabetes"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Diabetes
                     </div>
                     <div>
-                      <input type="checkbox" /> Colesterol alto
+                      <input
+                        type="checkbox"
+                        name="colesterol_alto_fam"
+                        data-group="historico_medico_familiar"
+                        value="Colesterol alto"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Colesterol alto"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Colesterol alto
                     </div>
                     <div>
-                      <input type="checkbox" /> AVC / Derrame
+                      <input
+                        type="checkbox"
+                        name="avc_fam"
+                        data-group="historico_medico_familiar"
+                        value="AVC / Derrame"
+                        checked={formData.historico_medico_familiar.includes(
+                          "AVC / Derrame"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      AVC / Derrame
                     </div>
                     <div>
-                      <input type="checkbox" /> Câncer (especificar)
+                      <input
+                        type="checkbox"
+                        name="cancer_fam"
+                        data-group="historico_medico_familiar"
+                        value="Câncer (especificar)"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Câncer (especificar)"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Câncer (especificar)
                     </div>
                   </div>
                   <div className={styles.col}>
                     <label>&nbsp;</label>
                     <div>
-                      <input type="checkbox" /> Hipertensão arterial
+                      <input
+                        type="checkbox"
+                        name="hipertensao_fam"
+                        data-group="historico_medico_familiar"
+                        value="Hipertensão arterial"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Hipertensão arterial"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Hipertensão arterial
                     </div>
                     <div>
-                      <input type="checkbox" /> Doença cardíaca
+                      <input
+                        type="checkbox"
+                        name="doenca_cardiaca_fam"
+                        data-group="historico_medico_familiar"
+                        value="Doença cardíaca"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Doença cardíaca"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Doença cardíaca
                     </div>
                     <div>
-                      <input type="checkbox" /> Obesidade
+                      <input
+                        type="checkbox"
+                        name="obesidade_fam"
+                        data-group="historico_medico_familiar"
+                        value="Obesidade"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Obesidade"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Obesidade
                     </div>
                     <div>
-                      <input type="checkbox" /> Morte súbita antes dos 50 anos
+                      <input
+                        type="checkbox"
+                        name="morte_subita_fam"
+                        data-group="historico_medico_familiar"
+                        value="Morte súbita antes dos 50 anos"
+                        checked={formData.historico_medico_familiar.includes(
+                          "Morte súbita antes dos 50 anos"
+                        )}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Morte súbita antes dos 50 anos
                     </div>
                   </div>
                 </div>
                 <div className={styles.row}>
                   <textarea
                     className={styles.colFull}
+                    name="historico_medico_familiar_outros"
                     placeholder="Outras condições familiares não listadas acima..."
                     rows={2}
+                    value={formData.historico_medico_familiar_outros}
+                    onChange={handleInputChange}
                   ></textarea>
                 </div>
                 {/* Medicamentos, Suplementos, Alergias */}
                 <div className={styles.row}>
                   <textarea
                     className={styles.colFull}
+                    name="medicamentos"
                     placeholder="Liste os medicamentos que você usa atualmente (nome, dosagem, frequência)"
                     rows={2}
+                    value={formData.medicamentos}
+                    onChange={handleInputChange}
                   ></textarea>
                 </div>
                 <div className={styles.row}>
                   <textarea
                     className={styles.colFull}
+                    name="suplementos"
                     placeholder="Suplementos, vitaminas ou produtos naturais que você usa"
                     rows={2}
+                    value={formData.suplementos}
+                    onChange={handleInputChange}
                   ></textarea>
                 </div>
                 <div className={styles.row}>
                   <textarea
                     className={styles.colFull}
+                    name="alergias"
                     placeholder="Alergias medicamentosas, alimentares ou outras"
                     rows={2}
+                    value={formData.alergias}
+                    onChange={handleInputChange}
                   ></textarea>
                 </div>
                 {/* Fuma/Álcool */}
@@ -387,25 +1006,67 @@ function ModalAvaliacao({ open, onClose }) {
                   <div className={styles.col}>
                     <label>Você fuma?</label>
                     <div>
-                      <input type="radio" name="fuma" /> Não
+                      <input
+                        type="radio"
+                        name="fuma"
+                        value="Não"
+                        checked={formData.fuma === "Não"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Não
                     </div>
                     <div>
-                      <input type="radio" name="fuma" /> Sim
+                      <input
+                        type="radio"
+                        name="fuma"
+                        value="Sim"
+                        checked={formData.fuma === "Sim"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Sim
                     </div>
                     <div>
-                      <input type="radio" name="fuma" /> Parei de fumar
+                      <input
+                        type="radio"
+                        name="fuma"
+                        value="Parei de fumar"
+                        checked={formData.fuma === "Parei de fumar"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Parei de fumar
                     </div>
                   </div>
                   <div className={styles.col}>
                     <label>Você bebe álcool?</label>
                     <div>
-                      <input type="radio" name="alcool" /> Não
+                      <input
+                        type="radio"
+                        name="alcool"
+                        value="Não"
+                        checked={formData.alcool === "Não"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Não
                     </div>
                     <div>
-                      <input type="radio" name="alcool" /> Socialmente
+                      <input
+                        type="radio"
+                        name="alcool"
+                        value="Socialmente"
+                        checked={formData.alcool === "Socialmente"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Socialmente
                     </div>
                     <div>
-                      <input type="radio" name="alcool" /> Regularmente
+                      <input
+                        type="radio"
+                        name="alcool"
+                        value="Regularmente"
+                        checked={formData.alcool === "Regularmente"}
+                        onChange={handleInputChange}
+                      />{" "}
+                      Regularmente
                     </div>
                   </div>
                 </div>
@@ -414,19 +1075,27 @@ function ModalAvaliacao({ open, onClose }) {
                   onNext={handleNext}
                   isFirst={false}
                   isLast={false}
+                  disabled={isUploading}
                 />
               </form>
             )}
             {step === 3 && (
-              <form className={styles.form} onSubmit={handleNext}>
+              <form
+                className={styles.form}
+                onSubmit={handleNext}
+                autoComplete="off"
+              >
                 <div className={styles.cardDesc}>{stepSubtitles[2]}</div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Motivo da Consulta *</label>
                     <textarea
                       required
+                      name="motivo_consulta"
                       placeholder="Qual o principal motivo que te trouxe aqui? (ex: emagrecimento, controle de diabetes, etc.)"
                       rows={2}
+                      value={formData.motivo_consulta}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -434,15 +1103,22 @@ function ModalAvaliacao({ open, onClose }) {
                   <div className={styles.colFull}>
                     <label>Descrição dos Sintomas</label>
                     <textarea
+                      name="descricao_sintomas"
                       placeholder="Descreva os sintomas que você está sentindo, quando começaram, intensidade, etc."
                       rows={2}
+                      value={formData.descricao_sintomas}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Há quanto tempo você tem esses sintomas?</label>
-                    <select>
+                    <select
+                      name="tempo_sintomas"
+                      value={formData.tempo_sintomas}
+                      onChange={handleInputChange}
+                    >
                       <option value="">Selecione o período</option>
                       <option value="dias">Dias</option>
                       <option value="semanas">Semanas</option>
@@ -457,28 +1133,50 @@ function ModalAvaliacao({ open, onClose }) {
                   onNext={handleNext}
                   isFirst={false}
                   isLast={false}
+                  disabled={isUploading}
                 />
               </form>
             )}
             {step === 4 && (
-              <form className={styles.form} onSubmit={handleNext}>
+              <form
+                className={styles.form}
+                onSubmit={handleNext}
+                autoComplete="off"
+              >
                 <div className={styles.cardDesc}>{stepSubtitles[3]}</div>
                 <div className={styles.row}>
                   <div className={styles.col}>
                     <label>Peso Atual (kg) *</label>
-                    <input type="number" placeholder="Ex: 70" required />
+                    <input
+                      type="number"
+                      name="peso_atual"
+                      placeholder="Ex: 70"
+                      required
+                      value={formData.peso_atual || ""}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className={styles.col}>
                     <label>Altura (cm) *</label>
-                    <input type="number" placeholder="Ex: 170" required />
+                    <input
+                      type="number"
+                      name="altura"
+                      placeholder="Ex: 170"
+                      required
+                      value={formData.altura || ""}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Histórico de Peso</label>
                     <textarea
+                      name="historico_peso"
                       placeholder="Conte sobre variações de peso, tentativas anteriores de emagrecimento/ganho de peso"
                       rows={2}
+                      value={formData.historico_peso}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -486,8 +1184,11 @@ function ModalAvaliacao({ open, onClose }) {
                   <div className={styles.colFull}>
                     <label>Hábitos Alimentares</label>
                     <textarea
+                      name="habitos_alimentares"
                       placeholder="Descreva sua rotina alimentar: quantas refeições por dia, tipos de alimentos, horários, restrições"
                       rows={2}
+                      value={formData.habitos_alimentares}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -495,8 +1196,11 @@ function ModalAvaliacao({ open, onClose }) {
                   <div className={styles.colFull}>
                     <label>Atividade Física</label>
                     <textarea
+                      name="atividade_fisica"
                       placeholder="Que tipo de atividade física você pratica? Descreva intensidade e duração"
                       rows={2}
+                      value={formData.atividade_fisica}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -507,21 +1211,43 @@ function ModalAvaliacao({ open, onClose }) {
                       <label>
                         <input
                           type="radio"
-                          name="freqAtiv"
+                          name="frequencia_atividade"
                           value="sedentario"
-                        />{" "}
+                          checked={
+                            formData.frequencia_atividade === "sedentario"
+                          }
+                          onChange={handleInputChange}
+                        />
                         Sedentário (não pratico)
                       </label>
                       <label>
-                        <input type="radio" name="freqAtiv" value="leve" /> Leve
-                        (1-2x por semana)
+                        <input
+                          type="radio"
+                          name="frequencia_atividade"
+                          value="leve"
+                          checked={formData.frequencia_atividade === "leve"}
+                          onChange={handleInputChange}
+                        />
+                        Leve (1-2x por semana)
                       </label>
                       <label>
-                        <input type="radio" name="freqAtiv" value="moderado" />{" "}
+                        <input
+                          type="radio"
+                          name="frequencia_atividade"
+                          value="moderado"
+                          checked={formData.frequencia_atividade === "moderado"}
+                          onChange={handleInputChange}
+                        />
                         Moderado (3-4x por semana)
                       </label>
                       <label>
-                        <input type="radio" name="freqAtiv" value="intenso" />{" "}
+                        <input
+                          type="radio"
+                          name="frequencia_atividade"
+                          value="intenso"
+                          checked={formData.frequencia_atividade === "intenso"}
+                          onChange={handleInputChange}
+                        />
                         Intenso (5+ vezes por semana)
                       </label>
                     </div>
@@ -536,14 +1262,21 @@ function ModalAvaliacao({ open, onClose }) {
               </form>
             )}
             {step === 5 && (
-              <form className={styles.form} onSubmit={handleNext}>
+              <form
+                className={styles.form}
+                onSubmit={handleNext}
+                autoComplete="off"
+              >
                 <div className={styles.cardDesc}>{stepSubtitles[4]}</div>
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Exames Recentes</label>
                     <textarea
+                      name="exames_recentes"
                       placeholder="Descreva resultados de exames recentes (sangue, imagem, etc.)"
                       rows={2}
+                      value={formData.exames_recentes}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -579,9 +1312,20 @@ function ModalAvaliacao({ open, onClose }) {
                         <ul
                           style={{ marginTop: 10, fontSize: 13, color: "#222" }}
                         >
-                          {examesFiles.map((file, idx) => (
-                            <li key={idx}>{file.name}</li>
-                          ))}
+                          {examesFiles.map((file, idx) => {
+                            const key = `${file.name}-${file.size}-${file.lastModified}`;
+                            const pct = uploadProgress[key];
+                            return (
+                              <li key={idx}>
+                                {file.name}{" "}
+                                {pct >= 0 && pct !== undefined
+                                  ? `- ${pct}%`
+                                  : pct === -1
+                                  ? "- erro"
+                                  : ""}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>
@@ -591,8 +1335,11 @@ function ModalAvaliacao({ open, onClose }) {
                   <div className={styles.colFull}>
                     <label>Diagnósticos Anteriores</label>
                     <textarea
+                      name="diagnosticos_anteriores"
                       placeholder="Liste diagnósticos médicos que você já recebeu"
                       rows={2}
+                      value={formData.diagnosticos_anteriores}
+                      onChange={handleInputChange}
                     ></textarea>
                   </div>
                 </div>
@@ -628,9 +1375,20 @@ function ModalAvaliacao({ open, onClose }) {
                         <ul
                           style={{ marginTop: 10, fontSize: 13, color: "#222" }}
                         >
-                          {diagFiles.map((file, idx) => (
-                            <li key={idx}>{file.name}</li>
-                          ))}
+                          {diagFiles.map((file, idx) => {
+                            const key = `${file.name}-${file.size}-${file.lastModified}`;
+                            const pct = uploadProgress[key];
+                            return (
+                              <li key={idx}>
+                                {file.name}{" "}
+                                {pct >= 0 && pct !== undefined
+                                  ? `- ${pct}%`
+                                  : pct === -1
+                                  ? "- erro"
+                                  : ""}
+                              </li>
+                            );
+                          })}
                         </ul>
                       )}
                     </div>
@@ -649,12 +1407,6 @@ function ModalAvaliacao({ open, onClose }) {
                 className={styles.form}
                 onSubmit={async (e) => {
                   e.preventDefault();
-                  const form = e.target;
-                  // Montar JSON e enviar para /api/pacientes
-                  const getValue = (name) =>
-                    form.querySelector(`[name="${name}"]`)?.value || "";
-                  const getChecked = (name) =>
-                    form.querySelector(`[name="${name}"]`)?.checked || false;
                   if (
                     examesFiles.length > 0 &&
                     examesUrls.length !== examesFiles.length
@@ -673,28 +1425,17 @@ function ModalAvaliacao({ open, onClose }) {
                     );
                     return;
                   }
+                  // Montar payload final com todos os dados
                   const payload = {
-                    nome: getValue("nome"),
-                    data_nascimento: getValue("data_nascimento"),
-                    genero: getValue("genero"),
-                    cpf: getValue("cpf"),
-                    telefone: getValue("telefone"),
-                    email: getValue("email"),
-                    endereco: getValue("endereco"),
-                    cidade: getValue("cidade"),
-                    estado: getValue("estado"),
-                    cep: getValue("cep"),
-                    // Exemplo de campos numéricos:
-                    peso_atual: Number(getValue("peso_atual")),
-                    altura: Number(getValue("altura")),
-                    // ...adicione outros campos numéricos aqui se houver...
+                    ...formData,
+                    peso_atual: Number(formData.peso_atual),
+                    altura: Number(formData.altura),
                     exames_arquivos: examesUrls,
                     diagnosticos_arquivos: diagUrls,
-                    consentimento_telemedicina: getChecked(
-                      "consentimentoTelemedicina"
-                    ),
-                    consentimento_lgpd: getChecked("consentimentoLGPD"),
-                    termos_uso: getChecked("termosUso"),
+                    consentimento_telemedicina:
+                      e.target.consentimentoTelemedicina.checked,
+                    consentimento_lgpd: e.target.consentimentoLGPD.checked,
+                    termos_uso: e.target.termosUso.checked,
                   };
                   try {
                     const response = await fetch(
@@ -705,12 +1446,24 @@ function ModalAvaliacao({ open, onClose }) {
                         body: JSON.stringify(payload),
                       }
                     );
-                    const data = await response.json();
-                    if (data.success) {
-                      alert("Avaliação enviada com sucesso!");
+                    let data = null;
+                    try {
+                      data = await response.json();
+                    } catch (err) {
+                      // body might be empty or invalid JSON
+                      data = null;
+                    }
+                    // Consider HTTP success (2xx) as primary success signal.
+                    if (response.ok || (data && data.success)) {
+                      alert("Dados salvos, parabéns!");
                       if (onClose) onClose();
                     } else {
-                      alert(data.error || "Erro ao enviar avaliação.");
+                      // Prefer server-provided message, fallback to generic
+                      const serverMsg = data && data.error ? data.error : null;
+                      alert(
+                        serverMsg ||
+                          `Erro ao salvar a avaliação. (status ${response.status})`
+                      );
                     }
                   } catch (err) {
                     alert("Erro de conexão com o servidor.");

@@ -1,19 +1,19 @@
 "use client";
 import styles from "./page.module.css";
 import { FaInfoCircle } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ModalAvaliacao from "./modalAvaliacao";
 
 const opcoes = [
   {
     value: "medicacao-time",
     title: "Medicação + Time de especialistas",
-    desc: "Avaliação do endocrinologista. Medicamentos na sua porta*. Suporte clínico via WhatsApp. Acompanhamento nutricional.",
+    desc: "Avaliação Médica. Medicamentos na sua porta*. Suporte clínico via WhatsApp. Acompanhamento nutricional.",
   },
   {
     value: "medicacao",
     title: "Somente medicação",
-    desc: "Avaliação do endocrinologista. Medicamentos na sua porta*.",
+    desc: "Avaliação Médica. Medicamentos na sua porta*.",
   },
   {
     value: "nao-sei",
@@ -25,15 +25,92 @@ const opcoes = [
 export default function Combinacao() {
   const [modalOpen, setModalOpen] = useState(false);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState("");
+  // Estado centralizado do formulário
+  const [formData, setFormData] = useState({
+    nome: "",
+    data_nascimento: "",
+    genero: "",
+    cpf: "",
+    telefone: "",
+    email: "",
+    endereco: "",
+    cidade: "",
+    estado: "",
+    cep: "",
+    historico_medico_pessoal: [],
+    historico_medico_pessoal_outros: "",
+    historico_medico_familiar: [],
+    historico_medico_familiar_outros: "",
+    medicamentos: "",
+    suplementos: "",
+    alergias: "",
+    fuma: "",
+    alcool: "",
+    motivo_consulta: "",
+    descricao_sintomas: "",
+    tempo_sintomas: "",
+    peso_atual: "",
+    altura: "",
+    historico_peso: "",
+    habitos_alimentares: "",
+    atividade_fisica: "",
+    frequencia_atividade: "",
+    exames_recentes: "",
+    diagnosticos_anteriores: "",
+  });
+  // Estado do step do modal também no pai para garantir estabilidade
+  const [modalStep, setModalStep] = useState(1);
+  const [planos, setPlanos] = useState([]);
 
-  function handleChange(e) {
-    setOpcaoSelecionada(e.target.value);
-    setModalOpen(true);
-  }
+  useEffect(() => {
+    let mounted = true;
+    async function loadPlanos() {
+      try {
+        const res = await fetch("https://slimshapeapi.vercel.app/api/planos");
+        if (!res.ok) return;
+        const json = await res.json();
+        if (mounted && Array.isArray(json)) setPlanos(json);
+      } catch (err) {
+        console.warn("failed to load planos", err);
+      }
+    }
+    loadPlanos();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-  function handleCloseModal() {
+  const handleChange = useCallback(
+    (e) => {
+      const val = e.target.value;
+      setOpcaoSelecionada(val);
+      // map option value to plano id (or null)
+      let planoId = null;
+      try {
+        if (val === "medicacao-time") {
+          // Plano Total
+          const p = planos.find((x) => /total/i.test(x.nome));
+          planoId = p ? p.id : null;
+        } else if (val === "medicacao") {
+          // Plano Básico
+          const p = planos.find((x) => /b[aá]sico/i.test(x.nome));
+          planoId = p ? p.id : null;
+        } else {
+          planoId = null;
+        }
+      } catch (err) {
+        planoId = null;
+      }
+      setFormData((prev) => ({ ...prev, plano: planoId }));
+      setModalStep(1); // sempre começa do início
+      setModalOpen(true);
+    },
+    [planos, setFormData]
+  );
+
+  const handleCloseModal = useCallback(() => {
     setModalOpen(false);
-  }
+  }, []);
 
   return (
     <>
@@ -66,7 +143,14 @@ export default function Combinacao() {
           </div>
         </section>
       </main>
-      <ModalAvaliacao open={modalOpen} onClose={handleCloseModal} />
+      <ModalAvaliacao
+        open={modalOpen}
+        onClose={handleCloseModal}
+        formData={formData}
+        setFormData={setFormData}
+        step={modalStep}
+        setStep={setModalStep}
+      />
     </>
   );
 }

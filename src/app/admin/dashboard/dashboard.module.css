@@ -237,6 +237,150 @@
   color: #4ade80;
 }
 
+/* Detalhe do paciente */
+.backButton {
+  background: transparent;
+  border: none;
+  color: #6366f1;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+.backButton:hover {
+  background: #f1f5f9;
+}
+
+.pacienteDetail {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 24px 28px;
+  border: 1px solid #e5e7eb;
+  color: #22223b;
+}
+.pacienteDetail h2 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.pacienteDetail > div {
+  margin-bottom: 8px;
+  color: #444;
+}
+
+/* Detalhe paciente - layout de formulário */
+.detailTitle {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+}
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.detailCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px; /* separar cada linha para legibilidade */
+}
+.detailRow label {
+  font-weight: 700;
+  color: #444;
+  margin-bottom: 6px;
+}
+
+/* conteúdo associado à label: caixa visual para indicar relação */
+.detailRow > div {
+  background: #f8fafc; /* tom muito suave */
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #eef2f7;
+  color: #111827;
+  min-height: 38px;
+  display: block;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  word-break: break-word;
+}
+
+/* listas e blocos dentro do campo devem respeitar o padding */
+.detailRow > div ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.detailRow > div pre {
+  margin: 0;
+  background: transparent;
+  padding: 0;
+}
+.fileList ul {
+  margin: 8px 0 16px 20px;
+}
+.fileList a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.detailAdditional {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+/* Ajuste para evitar sobreposição com header global */
+.pacienteDetail {
+  margin-top: 24px; /* aumenta espaço para o header do site */
+}
+
+.detailHeaderBar {
+  height: 8px;
+  background: linear-gradient(90deg, #6366f1, #a78bfa);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.fileItem {
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fileItem a {
+  color: #2563eb;
+  text-decoration: none;
+}
+.fileItem a:hover {
+  text-decoration: underline;
+}
+
+.rawToggle {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.rawJson {
+  margin-top: 12px;
+  background: #0f172a;
+  color: #e6eef8;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  overflow: auto;
+  max-height: 320px;
+}
+
 /* Tabelas */
 .tablesRow {
   display: flex;
