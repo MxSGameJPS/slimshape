@@ -82,6 +82,73 @@ export default function CheckoutClient() {
         (k) => payload[k] === undefined && delete payload[k]
       );
 
+      // valida CPF/CNPJ: se inválido, removemos para evitar 400 da API
+      function isValidCPF(cpf) {
+        if (!cpf) return false;
+        const s = String(cpf).replace(/\D+/g, "");
+        if (s.length !== 11) return false;
+        if (/^(\d)\1{10}$/.test(s)) return false;
+        const calc = (t) => {
+          let sum = 0;
+          for (let i = 0; i < t; i++) sum += Number(s[i]) * (t + 1 - i);
+          const r = sum % 11;
+          return r < 2 ? 0 : 11 - r;
+        };
+        const d1 = calc(9);
+        const d2 = calc(10);
+        return d1 === Number(s[9]) && d2 === Number(s[10]);
+      }
+
+      function isValidCNPJ(cnpj) {
+        if (!cnpj) return false;
+        const s = String(cnpj).replace(/\D+/g, "");
+        if (s.length !== 14) return false;
+        if (/^(\d)\1{13}$/.test(s)) return false;
+        const calc = (t) => {
+          const weights =
+            t === 12
+              ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+              : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+          let sum = 0;
+          for (let i = 0; i < weights.length; i++)
+            sum += Number(s[i]) * weights[i];
+          const r = sum % 11;
+          return r < 2 ? 0 : 11 - r;
+        };
+        const d1 = calc(12);
+        const d2 = calc(13);
+        return d1 === Number(s[12]) && d2 === Number(s[13]);
+      }
+
+      if (payload.cpfCnpj) {
+        payload.cpfCnpj = String(payload.cpfCnpj).replace(/\D+/g, "");
+        const s = payload.cpfCnpj;
+        const ok =
+          (s.length === 11 && isValidCPF(s)) ||
+          (s.length === 14 && isValidCNPJ(s));
+        if (!ok) {
+          console.warn("CPF/CNPJ inválido detectado, removendo do payload:", s);
+          delete payload.cpfCnpj;
+          try {
+            alert(
+              "CPF/CNPJ do paciente parece inválido e foi removido para permitir a criação da cobrança. Atualize o cadastro do paciente."
+            );
+          } catch (e) {}
+        }
+      }
+
+      // sanitize fields that often cause 400s
+      if (payload.cpfCnpj)
+        payload.cpfCnpj = String(payload.cpfCnpj).replace(/\D+/g, "");
+      if (payload.telefone)
+        payload.telefone = String(payload.telefone).replace(/\D+/g, "");
+      if (payload.value != null) {
+        const n = Number(payload.value);
+        if (Number.isFinite(n)) payload.value = Number(n.toFixed(2));
+      }
+      if (payload.dueDate)
+        payload.dueDate = String(payload.dueDate).slice(0, 10);
+
       console.log("Payload cobranca (frontend):", payload);
 
       const res = await fetch(
@@ -93,17 +160,17 @@ export default function CheckoutClient() {
         }
       );
 
+      const raw = await res.text();
       let js = null;
       try {
-        js = await res.json();
+        js = raw ? JSON.parse(raw) : null;
       } catch (e) {
-        // resposta não é JSON
-        const text = await res.text();
+        js = null;
         console.error(
           "Resposta não-JSON do backend (status",
           res.status,
           "):",
-          text
+          raw
         );
       }
 
@@ -111,9 +178,17 @@ export default function CheckoutClient() {
         console.error(
           "Erro do backend ao criar checkout (status",
           res.status,
-          "):",
-          js
+          ") - parsed:",
+          js,
+          "raw:",
+          raw
         );
+        try {
+          const mensagem = js?.error || js || raw || `status ${res.status}`;
+          alert(
+            "Erro ao criar cobrança (detalhe):\n" + JSON.stringify(mensagem)
+          );
+        } catch (e) {}
       }
 
       // O backend pode retornar { url } (exemplo do time) ou { link }/etc.

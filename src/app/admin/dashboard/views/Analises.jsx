@@ -28,21 +28,18 @@ ChartJS.register(
   LineElement
 );
 
-// Charts start empty and will be populated from the API
-const vendasData = {
-  labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago"],
-  datasets: [
-    {
-      label: "Vendas",
-      data: [22000, 31000, 28000, 32000, 35000, 37000, 39000, 41000],
-      borderColor: "#6366f1",
-      backgroundColor: "rgba(99,102,241,0.1)",
-      tension: 0.3,
-      fill: true,
-      pointRadius: 4,
-    },
-  ],
-};
+// vendasData será calculado a partir dos pacientes ativos e preços dos planos
+function lastNMonthsLabels(n = 8) {
+  const res = [];
+  const now = new Date();
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    res.push(d.toLocaleString("pt-BR", { month: "short" }));
+  }
+  return res;
+}
+
+// estado para vendas (evolução mensal) será criado dentro do componente
 
 export default function Analises() {
   const [estadosData, setEstadosData] = useState({
@@ -78,6 +75,22 @@ export default function Analises() {
     ],
   });
   const [totalPacientes, setTotalPacientes] = useState(null);
+  const [planosAtivosCount, setPlanosAtivosCount] = useState(null);
+  const [receitaMensal, setReceitaMensal] = useState(null);
+  const [vendasData, setVendasData] = useState({
+    labels: lastNMonthsLabels(8),
+    datasets: [
+      {
+        label: "Vendas",
+        data: new Array(8).fill(0),
+        borderColor: "#6366f1",
+        backgroundColor: "rgba(99,102,241,0.1)",
+        tension: 0.3,
+        fill: true,
+        pointRadius: 4,
+      },
+    ],
+  });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
@@ -131,6 +144,144 @@ export default function Analises() {
 
         // set total (allow zero)
         setTotalPacientes(arr.length || 0);
+
+        // agora calcular planos ativos e receita mensal
+        try {
+          // buscar planos para mapping de preços
+          const planosResp = await fetch(
+            "https://slimshapeapi.vercel.app/api/planos"
+          );
+          const planosJson = planosResp.ok ? await planosResp.json() : null;
+          let planosArr = [];
+          if (Array.isArray(planosJson)) planosArr = planosJson;
+          else if (Array.isArray(planosJson?.planos))
+            planosArr = planosJson.planos;
+          else if (Array.isArray(planosJson?.data)) planosArr = planosJson.data;
+
+          const planoPriceMap = new Map();
+          planosArr.forEach((pl) => {
+            const pid = pl.id ?? pl._id ?? null;
+            let preco = null;
+            if (Array.isArray(pl.precos) && pl.precos.length > 0)
+              preco = pl.precos[0].preco ?? pl.precos[0].valor ?? null;
+            else preco = pl.preco ?? null;
+            if (pid) planoPriceMap.set(String(pid), Number(preco ?? 0));
+          });
+
+          // checar status para cada paciente
+          const checks = await Promise.all(
+            (arr || []).map(async (p) => {
+              try {
+                const pid = p.id ?? p._id ?? null;
+                if (!pid) return null;
+                const r = await fetch(
+                  `https://slimshapeapi.vercel.app/api/pagamento-status?pacienteId=${encodeURIComponent(
+                    pid
+                  )}`
+                );
+                if (!r.ok) return null;
+                const js = await r.json();
+                if (!js || !js.status) return null;
+                const s = String(js.status).toLowerCase();
+                if (s === "ativo" || s === "active") return p;
+                return null;
+              } catch (e) {
+                return null;
+              }
+            })
+          );
+
+          const activePacientes = checks.filter(Boolean);
+          setPlanosAtivosCount(activePacientes.length);
+
+          let revenue = 0;
+          activePacientes.forEach((p) => {
+            let planoId = null;
+            try {
+              if (p.plano) {
+                if (typeof p.plano === "string") planoId = p.plano;
+                else if (typeof p.plano === "object")
+                  planoId = p.plano.id ?? p.plano._id ?? null;
+              }
+            } catch (e) {
+              planoId = null;
+            }
+            const preco = planoPriceMap.get(String(planoId)) ?? 0;
+            revenue += Number(preco);
+          });
+          setReceitaMensal(revenue);
+
+          // construir série de receita mensal para os últimos 8 meses
+          try {
+            const labels = lastNMonthsLabels(8);
+            const now = new Date();
+            const monthBuckets = new Array(8).fill(0);
+
+            activePacientes.forEach((p) => {
+              // pegar data de criação do paciente
+              const createdRaw =
+                p.criado_em ??
+                p.criadoEm ??
+                p.created_at ??
+                p.createdAt ??
+                p.created ??
+                null;
+              let createdDate = null;
+              if (createdRaw) {
+                const tmp = new Date(createdRaw);
+                if (!isNaN(tmp)) createdDate = tmp;
+              }
+              // determinar bucket (mes/ano) se data válida
+              if (createdDate) {
+                for (let i = 0; i < 8; i++) {
+                  const d = new Date(
+                    now.getFullYear(),
+                    now.getMonth() - (7 - i),
+                    1
+                  );
+                  // se createdDate está no mesmo mês/ano de d
+                  if (
+                    createdDate.getFullYear() === d.getFullYear() &&
+                    createdDate.getMonth() === d.getMonth()
+                  ) {
+                    let planoId = null;
+                    try {
+                      if (p.plano) {
+                        if (typeof p.plano === "string") planoId = p.plano;
+                        else if (typeof p.plano === "object")
+                          planoId = p.plano.id ?? p.plano._id ?? null;
+                      }
+                    } catch (e) {
+                      planoId = null;
+                    }
+                    const preco = planoPriceMap.get(String(planoId)) ?? 0;
+                    monthBuckets[i] += Number(preco);
+                    break;
+                  }
+                }
+              }
+            });
+
+            setVendasData({
+              labels,
+              datasets: [
+                {
+                  label: "Vendas",
+                  data: monthBuckets,
+                  borderColor: "#6366f1",
+                  backgroundColor: "rgba(99,102,241,0.1)",
+                  tension: 0.3,
+                  fill: true,
+                  pointRadius: 4,
+                },
+              ],
+            });
+          } catch (e) {
+            console.warn("Analises: erro ao construir series de vendas", e);
+          }
+        } catch (err) {
+          console.warn("Analises: erro ao calcular planos ativos/receita", err);
+        }
 
         // genero counts
         const generoCounts = {};
@@ -194,27 +345,60 @@ export default function Analises() {
 
         if (!mounted) return;
 
-        // prepare genero dataset - keep ordering Feminino, Masculino, Outros
-        const generoLabels = ["Feminino", "Masculino"];
-        const generoVals = generoLabels.map((lab) => generoCounts[lab] || 0);
-        // if there are other genders, add them
-        const otherGenders = Object.keys(generoCounts).filter(
-          (k) => !generoLabels.includes(k)
+        // prepare genero dataset - normalize labels to avoid duplicates
+        function normalizeGeneroLabel(raw) {
+          if (!raw) return "Outros";
+          const s = String(raw).trim().toLowerCase();
+          if (s === "f" || s === "feminino" || s === "feminina")
+            return "Feminino";
+          if (s === "m" || s === "masculino" || s === "masculino")
+            return "Masculino";
+          // map common lowercase variants
+          if (s === "masculino" || s === "masc") return "Masculino";
+          if (s === "feminino" || s === "fem") return "Feminino";
+          // title-case any other value
+          return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+
+        const generoNormCounts = {};
+        for (const k of Object.keys(generoCounts)) {
+          const norm = normalizeGeneroLabel(k);
+          generoNormCounts[norm] =
+            (generoNormCounts[norm] || 0) + generoCounts[k];
+        }
+
+        // preferred order Feminino, Masculino, then others
+        const preferred = ["Feminino", "Masculino"];
+        const others = Object.keys(generoNormCounts).filter(
+          (k) => !preferred.includes(k)
         );
-        const generoLabelsFinal = [...generoLabels, ...otherGenders];
-        const generoValsFinal = [
-          ...generoVals,
-          ...otherGenders.map((k) => generoCounts[k] || 0),
+        const generoLabelsFinal = [
+          ...preferred.filter((p) => generoNormCounts[p]),
+          ...others,
         ];
+        const generoValsFinal = generoLabelsFinal.map(
+          (lab) => generoNormCounts[lab] || 0
+        );
+
+        // palette: distinct pastel colors, expand if needed
+        const palette = [
+          "#a5b4fc",
+          "#6ee7b7",
+          "#f59e0b",
+          "#f973a6",
+          "#60a5fa",
+          "#9ca3af",
+        ];
+        const background = generoLabelsFinal.map(
+          (_, i) => palette[i % palette.length]
+        );
 
         setGeneroData({
           labels: generoLabelsFinal,
           datasets: [
             {
               data: generoValsFinal,
-              backgroundColor: generoLabelsFinal.map((lab, i) =>
-                i === 0 ? "#a5b4fc" : i === 1 ? "#6ee7b7" : "#c7c7c7"
-              ),
+              backgroundColor: background,
               borderWidth: 0,
             },
           ],
@@ -285,19 +469,25 @@ export default function Analises() {
           <div className={styles.cardTitle}>
             Injeções Ativas <FaSyringe className={styles.cardIcon} />
           </div>
-          <div className={styles.cardValue}>3</div>
+          <div className={styles.cardValue}>{planosAtivosCount ?? "..."}</div>
         </div>
         <div className={styles.card}>
           <div className={styles.cardTitle}>
             Planos Ativos <FaCalendarAlt className={styles.cardIcon} />
           </div>
-          <div className={styles.cardValue}>3</div>
+          <div className={styles.cardValue}>{planosAtivosCount ?? "..."}</div>
         </div>
         <div className={styles.card}>
           <div className={styles.cardTitle}>
             Receita Mensal <FaChartLine className={styles.cardIcon} />
           </div>
-          <div className={styles.cardValue}>R$ 996</div>
+          <div className={styles.cardValue}>
+            {receitaMensal == null
+              ? "..."
+              : `R$ ${receitaMensal.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                })}`}
+          </div>
         </div>
       </div>
       <div className={styles.analisesGrid}>
