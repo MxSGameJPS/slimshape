@@ -66,9 +66,11 @@ export default function Depoimento() {
               <Image
                 src={foto.src}
                 alt={dep.nome + " resultado"}
-                fill
-                style={{ objectFit: "cover" }}
-                sizes="220px"
+                width={380}
+                height={450}
+                className={styles.fotoImg}
+                quality={100}
+                priority={i === 0}
               />
               <span className={styles.fotoLabel}>{foto.label}</span>
             </div>

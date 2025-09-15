@@ -63,13 +63,13 @@ export default function Footer() {
           <div className={styles.footerTitle}>Contato</div>
           <div className={styles.footerContact}>
             <span>
-              <FaPhoneAlt /> (11) 9999-9999
+              <FaPhoneAlt /> (41) 98848-9981
             </span>
             <span>
-              <FaEnvelope /> contato@slimshape.com.br
+              <FaEnvelope /> slimshapedigital@gmail.com
             </span>
             <span>
-              <FaMapMarkerAlt /> São Paulo, SP
+              <FaMapMarkerAlt /> Curitiba, PR
             </span>
           </div>
         </div>
