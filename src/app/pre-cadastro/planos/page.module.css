@@ -123,3 +123,60 @@
   font-size: 1rem;
   color: #3b2a1a; /* texto mais escuro para contraste */
 }
+
+/* Modal styles for planos picker */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  color: #2d1834;
+  gap: 12px;
+}
+.modalBox {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 420px;
+  max-width: 95%;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.modalTitle {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: #2d1834;
+  margin-bottom: 1rem;
+}
+
+.modalDescription {
+  color: #444;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.modalRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+}
+.modalActions {
+  text-align: right;
+  margin-top: 12px;
+}
+
+.btnSecondary {
+  background: #eee;
+  color: #444;
+  border: none;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}

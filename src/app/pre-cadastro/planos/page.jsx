@@ -1,5 +1,5 @@
 import React from "react";
-import PlanosClient from "./PlanosClient";
+import PlanosClient from "./PlanosClientClean";
 
 export default function PlanosPage() {
   return (
