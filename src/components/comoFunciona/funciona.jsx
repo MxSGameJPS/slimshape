@@ -1,5 +1,4 @@
 import styles from "./funciona.module.css";
-import Image from "next/image";
 
 const etapas = [
   {
@@ -36,19 +35,14 @@ export default function ComoFunciona() {
         <h2 className={styles.tituloPrincipal}>
           Sua jornada completa 100% online
         </h2>
-        <div className={styles.cards}>
+        <p className={styles.subTitulo}>
+          Como funciona o processo do início ao fim
+        </p>
+
+        <div className={styles.cardsSimple}>
           {etapas.map((etapa, idx) => (
-            <div className={styles.card} key={idx}>
-              <div className={styles.cardTop}>
-                <span className={styles.cardNum}>{idx + 1}</span>
-                <Image
-                  src={etapa.icon}
-                  alt={etapa.titulo}
-                  width={54}
-                  height={54}
-                  className={styles.cardIcon}
-                />
-              </div>
+            <div className={styles.cardSimple} key={idx}>
+              <div className={styles.circleNumber}>{idx + 1}</div>
               <div className={styles.cardTitulo}>{etapa.titulo}</div>
               <div className={styles.cardTexto}>{etapa.texto}</div>
             </div>
