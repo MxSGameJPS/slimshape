@@ -9,7 +9,7 @@ export default function CTA() {
           Alcance seu peso ideal com planos seguros, 100% online, e com
           acompanhamento profissional em todas as etapas.
         </div>
-        <a href="#" className={styles.ctaBtn}>
+        <a href="#faq" className={styles.ctaBtn}>
           Funciona pra mim?
         </a>
       </div>

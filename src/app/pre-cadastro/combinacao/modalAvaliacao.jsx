@@ -1456,7 +1456,22 @@ function ModalAvaliacao({
                     // Consider HTTP success (2xx) as primary success signal.
                     if (response.ok || (data && data.success)) {
                       alert("Dados salvos, parabéns!");
-                      if (onClose) onClose();
+                      try {
+                        // redireciona para a página de planos para que o usuário escolha
+                        // se a API retornou um id de paciente, anexa como query param
+                        const pid =
+                          data && (data.id || data._id || data.pacienteId);
+                        const url = pid
+                          ? `/pre-cadastro/planos?pacienteId=${encodeURIComponent(
+                              pid
+                            )}`
+                          : "/pre-cadastro/planos";
+                        window.location.href = url;
+                        return;
+                      } catch (err) {
+                        if (onClose) onClose();
+                        return;
+                      }
                     } else {
                       // Prefer server-provided message, fallback to generic
                       const serverMsg = data && data.error ? data.error : null;

@@ -2,6 +2,7 @@
 import styles from "./faq.module.css";
 import { useState } from "react";
 import { FaChevronDown } from "react-icons/fa";
+import Link from "next/link";
 
 const faqs = [
   {
@@ -55,9 +56,9 @@ export default function FAQ() {
             nutricionistas e especialistas em saúde para encontrar sua receita
             certa para emagrecer.
           </div>
-          <a href="#cta" className={styles.faqBtn}>
+          <Link href="/pre-cadastro" className={styles.faqBtn}>
             Quero uma avaliação
-          </a>
+          </Link>
         </div>
         <div className={styles.faqList}>
           {faqs.map((faq, idx) => (

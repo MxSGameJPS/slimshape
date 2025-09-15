@@ -63,6 +63,12 @@ export default function Combinacao() {
   const [planos, setPlanos] = useState([]);
 
   useEffect(() => {
+    // restaurar opcao selecionada do localStorage
+    try {
+      const saved = localStorage.getItem("opcaoSelecionada");
+      if (saved) setOpcaoSelecionada(saved);
+    } catch (e) {}
+
     let mounted = true;
     async function loadPlanos() {
       try {
@@ -84,26 +90,11 @@ export default function Combinacao() {
     (e) => {
       const val = e.target.value;
       setOpcaoSelecionada(val);
-      // map option value to plano id (or null)
-      let planoId = null;
       try {
-        if (val === "medicacao-time") {
-          // Plano Total
-          const p = planos.find((x) => /total/i.test(x.nome));
-          planoId = p ? p.id : null;
-        } else if (val === "medicacao") {
-          // Plano Básico
-          const p = planos.find((x) => /b[aá]sico/i.test(x.nome));
-          planoId = p ? p.id : null;
-        } else {
-          planoId = null;
-        }
-      } catch (err) {
-        planoId = null;
-      }
-      setFormData((prev) => ({ ...prev, plano: planoId }));
-      setModalStep(1); // sempre começa do início
-      setModalOpen(true);
+        localStorage.setItem("opcaoSelecionada", val);
+      } catch (e) {}
+      // não mapeia plano ainda; o modal será aberto somente após escolher o estado
+      setModalStep(1); // prepara o step inicial caso o modal abra em seguida
     },
     [planos, setFormData]
   );
@@ -136,6 +127,63 @@ export default function Combinacao() {
                 </div>
               </label>
             ))}
+            <div className={styles.estadoRow}>
+              <label className={styles.estadoLabel}>Estado onde mora</label>
+              <select
+                value={formData.estado || ""}
+                onChange={(e) => {
+                  const estado = e.target.value;
+                  setFormData((prev) => ({ ...prev, estado }));
+                }}
+              >
+                <option value="">Selecione um estado</option>
+                <option value="AC">AC</option>
+                <option value="AL">AL</option>
+                <option value="AP">AP</option>
+                <option value="AM">AM</option>
+                <option value="BA">BA</option>
+                <option value="CE">CE</option>
+                <option value="DF">DF</option>
+                <option value="ES">ES</option>
+                <option value="GO">GO</option>
+                <option value="MA">MA</option>
+                <option value="MT">MT</option>
+                <option value="MS">MS</option>
+                <option value="MG">MG</option>
+                <option value="PA">PA</option>
+                <option value="PB">PB</option>
+                <option value="PR">PR</option>
+                <option value="PE">PE</option>
+                <option value="PI">PI</option>
+                <option value="RJ">RJ</option>
+                <option value="RN">RN</option>
+                <option value="RS">RS</option>
+                <option value="RO">RO</option>
+                <option value="RR">RR</option>
+                <option value="SC">SC</option>
+                <option value="SP">SP</option>
+                <option value="SE">SE</option>
+                <option value="TO">TO</option>
+              </select>
+            </div>
+            <div style={{ marginTop: 18 }}>
+              <button
+                type="button"
+                className={
+                  formData.estado
+                    ? styles.continuarBtn
+                    : styles.continuarBtnDisabled
+                }
+                onClick={() => {
+                  if (formData.estado) {
+                    setModalStep(1);
+                    setModalOpen(true);
+                  }
+                }}
+              >
+                Continuar
+              </button>
+            </div>
           </form>
           <div className={styles.infoBox}>
             <FaInfoCircle className={styles.infoIcon} />

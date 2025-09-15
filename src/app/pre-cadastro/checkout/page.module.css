@@ -1,0 +1,33 @@
+.checkoutPage {
+  padding: 120px 24px 48px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.checkoutPage h1 {
+  font-size: 28px;
+  margin-bottom: 12px;
+    color: #2d1834;
+}
+.checkoutPage p {
+  margin: 6px 0;
+  color: #2d1834;
+}
+.actions {
+  margin-top: 20px;
+}
+.btnPrimary {
+  background: #0b6b5b;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.message {
+  margin-top: 14px;
+  color: #a33;
+}

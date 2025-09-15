@@ -1,5 +1,6 @@
 import styles from "./hero.module.css";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -13,9 +14,9 @@ export default function Hero() {
           reais, acompanhamento de especialistas e plano personalizado para
           você.
         </p>
-        <a href="#cta" className={styles.cta}>
+        <Link href="/pre-cadastro" className={styles.cta}>
           Quero começar agora
-        </a>
+        </Link>
       </div>
       <div className={styles.collage}>
         <div className={styles.collageLeft}>

@@ -1,0 +1,125 @@
+.page {
+  max-width: 1200px;
+  margin: 2.5rem auto;
+  padding: 1rem;
+  /* garantir que o conteúdo não fique escondido atrás do header fixo */
+  padding-top: 140px;
+}
+.header {
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  color: #2d1834;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  color: #444444; /* aumentar contraste */
+  font-size: 1rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.6rem;
+  box-shadow: 0 6px 20px rgba(18, 18, 18, 0.06);
+  position: relative;
+}
+.badge {
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  background: #ff8a00;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(18, 18, 18, 0.08);
+}
+.cardTitle {
+  font-size: 1.05rem;
+  color: #121212; /* aumentar contraste */
+  margin-bottom: 0.6rem;
+}
+.ativos {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+.ativoBadge {
+  background: #f0f5ff;
+  color: #0b4f8a;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.descricao {
+  color: #333333; /* aumentar contraste */
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+.priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.price {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #2d1834;
+}
+.btnPrimary {
+  background: #ff7a00;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.faqSummary {
+  font-weight: 500;
+  cursor: pointer;
+  color: #2d1834;
+  font-size: 0.9rem;
+}
+
+.faq {
+  margin-top: 1.9rem;
+  color: #121212;
+}
+
+.faqItem {
+  margin-top: 1rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+.infoBox {
+  margin-top: 2rem;
+  background: #fff7e6;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #3b2a1a; /* texto mais escuro para contraste */
+}
+
+.infoBox h3 {
+  margin-bottom: 0.8rem;
+  font-size: 1.1rem;
+  color: #2d1834;
+}
+
+.infoItem {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #3b2a1a; /* texto mais escuro para contraste */
+}

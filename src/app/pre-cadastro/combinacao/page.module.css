@@ -91,3 +91,45 @@
 .infoIcon {
   font-size: 1.1rem;
 }
+
+.estadoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.estadoLabel {
+  font-weight: 600;
+  color: #2d1834;
+}
+
+.estadoRow select {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  width: 100%;
+}
+
+.continuarBtn {
+  background: #e9e6e2;
+  color: #7c3aed;
+  padding: 0.9rem 2.4rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.continuarBtnDisabled {
+  background: #efeae6;
+  color: #bbafbf;
+  padding: 0.9rem 2.4rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 700;
+  cursor: not-allowed;
+}
