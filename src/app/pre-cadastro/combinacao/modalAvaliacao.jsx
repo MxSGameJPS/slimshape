@@ -517,6 +517,34 @@ function ModalAvaliacao({
   );
   const progressPercents = useMemo(() => [17, 33, 50, 67, 83, 100], []);
 
+  // Converte datas em formatos comuns BR para ISO (YYYY-MM-DD)
+  // Aceita: "09041988", "09/04/1988", "09-04-1988", ou já em ISO retorna como está.
+  function formatDateBRtoISO(dataBR) {
+    if (!dataBR) return "";
+    const s = String(dataBR).trim();
+    // se já parece ISO (YYYY-MM-DD)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    // sem separadores: DDMMYYYY
+    if (/^\d{8}$/.test(s)) {
+      return `${s.slice(4, 8)}-${s.slice(2, 4)}-${s.slice(0, 2)}`;
+    }
+    // com separadores / ou -: DD/MM/YYYY ou DD-MM-YYYY
+    const m = s.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+    if (m) {
+      return `${m[3]}-${m[2]}-${m[1]}`;
+    }
+    // fallback: tenta criar Date e formatar
+    const parsed = new Date(s);
+    if (!Number.isNaN(parsed.getTime())) {
+      const y = parsed.getFullYear();
+      const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+      const dd = String(parsed.getDate()).padStart(2, "0");
+      return `${y}-${mm}-${dd}`;
+    }
+    // se nada der certo, retorna string original para que backend valide
+    return s;
+  }
+
   // ...existing code...
 
   // Renderização principal
@@ -1426,8 +1454,12 @@ function ModalAvaliacao({
                     return;
                   }
                   // Montar payload final com todos os dados
+                  const normalizedDataNascimento = formatDateBRtoISO(
+                    formData.data_nascimento
+                  );
                   const payload = {
                     ...formData,
+                    data_nascimento: normalizedDataNascimento || null,
                     peso_atual: Number(formData.peso_atual),
                     altura: Number(formData.altura),
                     exames_arquivos: examesUrls,
