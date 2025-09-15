@@ -112,6 +112,57 @@
   }
 }
 
+/* Mobile specific tweaks for <= 768px */
+@media (max-width: 768px) {
+  .faqSection {
+    padding: 2rem 0 3rem 0;
+    height: auto;
+  }
+  .faqBg {
+    padding: 2rem 1rem 0 1rem;
+    flex-direction: column;
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .faqIntro {
+    max-width: 100%;
+    text-align: center;
+    padding: 0 0.5rem;
+    margin-bottom: -100px;
+  }
+  .faqTitulo {
+    font-size: 1.9rem;
+    margin-bottom: 0.9rem;
+  }
+  .faqTexto {
+    font-size: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  .faqBtn {
+    padding: 0.8rem 1.6rem;
+    font-size: 1rem;
+    margin-bottom: 0;
+  }
+  .faqList {
+    width: 100%;
+    gap: 0.9rem;
+  }
+  .faqItem {
+    padding: 1rem 1rem;
+  }
+  .faqItemTitle {
+    font-size: 1.05rem;
+  }
+  .faqItemContent {
+    font-size: 1rem;
+    margin-top: 0.8rem;
+  }
+  .faqIcon {
+    font-size: 1.1rem;
+    margin-left: 0.6rem;
+  }
+}
+
 /* Classe auxiliar para controle via CSS Modules */
 .open {
   /* Classe auxiliar presente para alternância via CSS Modules */

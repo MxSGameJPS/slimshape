@@ -180,3 +180,34 @@
   cursor: pointer;
   font-weight: 700;
 }
+
+@media (max-width: 768px) {
+  .page {
+    padding-top: 100px;
+    margin: 1rem;
+  }
+  .title {
+    font-size: 1.4rem;
+  }
+  .subtitle {
+    font-size: 0.95rem;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .card {
+    padding: 1rem;
+  }
+  .badge {
+    right: -6px;
+    top: -6px;
+    padding: 6px 10px;
+  }
+  .infoBox {
+    padding: 0.8rem;
+  }
+  .modalBox {
+    width: 95%;
+  }
+}

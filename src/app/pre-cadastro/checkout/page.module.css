@@ -6,7 +6,7 @@
 .checkoutPage h1 {
   font-size: 28px;
   margin-bottom: 12px;
-    color: #2d1834;
+  color: #2d1834;
 }
 .checkoutPage p {
   margin: 6px 0;
@@ -30,4 +30,19 @@
 .message {
   margin-top: 14px;
   color: #a33;
+}
+
+@media (max-width: 768px) {
+  .checkoutPage {
+    padding: 60px 16px 32px;
+    max-width: 100%;
+  }
+  .checkoutPage h1 {
+    font-size: 22px;
+  }
+  .btnPrimary {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+  }
 }

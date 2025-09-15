@@ -74,3 +74,31 @@
   color: #b3a9a0;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .preCadastroBg {
+    /* espaço maior para compensar header fixo em mobile */
+    padding-top: 6.5rem;
+  }
+  .preCadastroForm {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+  .preCadastroForm h1 {
+    font-size: 1.6rem;
+  }
+  .preCadastroForm p {
+    font-size: 0.95rem;
+  }
+  .form {
+    gap: 0.8rem;
+  }
+  .select {
+    padding: 0.9rem;
+    font-size: 0.95rem;
+  }
+  .button {
+    padding: 0.85rem 0;
+    font-size: 1rem;
+  }
+}

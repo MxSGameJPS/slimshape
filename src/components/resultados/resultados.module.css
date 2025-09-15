@@ -4,6 +4,10 @@
   margin: 0 auto;
   padding: 4rem 1rem 0 1rem;
   margin-bottom: 4rem;
+
+  @media (max-width: 700px) {
+    padding-top: 2rem;
+  }
 }
 
 .titulo {
@@ -12,6 +16,11 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-bottom: 0.5rem;
+
+  @media (max-width: 500px) {
+    font-size: 1rem;
+    text-align: center;
+  }
 }
 
 .tituloPrincipal {
@@ -20,6 +29,11 @@
   font-weight: 800;
   margin-bottom: 2.5rem;
   font-family: inherit;
+
+  @media (max-width: 500px) {
+    font-size: 2.2rem;
+    text-align: center;
+  }
 }
 
 .cards {
@@ -27,6 +41,12 @@
   gap: 2.5rem;
   justify-content: center;
   flex-wrap: wrap;
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+    gap: 2rem;
+    align-items: center;
+  }
 }
 
 .card {
@@ -39,6 +59,10 @@
   align-items: flex-start;
   padding: 2.5rem 2rem 2rem 2rem;
   min-width: 280px;
+
+  @media (max-width: 700px) {
+    min-width: auto;
+  }
 }
 
 .cardValor {
@@ -46,6 +70,10 @@
   font-size: 2.7rem;
   font-weight: 800;
   margin-bottom: 0.7rem;
+
+  @media (max-width: 700px) {
+    font-size: 2.2rem;
+  }
 }
 
 .cardTitulo {
@@ -53,17 +81,30 @@
   font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 0.7rem;
+
+  @media (max-width: 500px) {
+    font-size: 1.1rem;
+    text-align: center;
+  }
 }
 
 .cardTexto {
   color: #2d2d2d;
   font-size: 1rem;
+
+  @media (max-width: 500px) {
+    font-size: 0.95rem;
+  }
 }
 
 .nota {
   color: var(--violeta);
   font-size: 0.9rem;
   margin-top: 2.5rem;
+
+  @media (max-width: 500px) {
+    text-align: center;
+  }
 }
 
 @media (max-width: 900px) {

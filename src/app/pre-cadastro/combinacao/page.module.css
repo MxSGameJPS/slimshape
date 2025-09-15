@@ -133,3 +133,33 @@
   font-weight: 700;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .radioForm {
+    padding: 2rem 1rem;
+    gap: 0.8rem;
+  }
+  .preCadastroBg {
+    padding: 2rem 1rem;
+  }
+  .radioBox {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.8rem;
+  }
+  .radioTitle {
+    font-size: 1rem;
+  }
+  .radioDesc {
+    font-size: 0.95rem;
+  }
+  .estadoRow {
+    max-width: 100%;
+  }
+  .continuarBtn,
+  .continuarBtnDisabled {
+    width: 100%;
+    padding: 0.9rem 1rem;
+  }
+}

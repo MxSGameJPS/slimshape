@@ -435,3 +435,56 @@
 .btnSec:hover {
   background: #f2f2f2;
 }
+
+/* Mobile adjustments for modal (<=768px) */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95vw;
+    max-width: 95vw;
+    height: auto;
+    max-height: 92vh;
+    border-radius: 12px;
+  }
+  .modalHeader {
+    padding: 1rem 1rem 0.5rem 1rem;
+  }
+  .modalProgress,
+  .modalFooter {
+    padding: 0 1rem 0.5rem 1rem;
+  }
+  .modalCard {
+    margin: 0.8rem 1rem;
+    padding: 1rem;
+  }
+  .modalBody {
+    padding: 1rem 1rem 0 1rem;
+  }
+  .card {
+    margin: 0 1rem;
+    padding: 1rem;
+  }
+  .row {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .colSmall {
+    width: 100%;
+  }
+  .form input,
+  .form select,
+  .form textarea {
+    font-size: 0.95rem;
+    padding: 0.6rem 0.8rem;
+  }
+  .btnPri,
+  .btnFinal,
+  .btnSec {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+  }
+  .nextStepsCard {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+}
