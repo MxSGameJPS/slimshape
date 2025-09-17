@@ -21,7 +21,7 @@ import Analises from "./views/Analises";
 const MENU = [
   { label: "Visão Geral", icon: <FaChartPie />, comp: <DashboardHome /> },
   { label: "Pacientes", icon: <FaUser />, comp: <Pacientes /> },
-  { label: "Injeções", icon: <FaVial />, comp: <Injetaveis /> },
+  { label: "Tratamentos", icon: <FaVial />, comp: <Injetaveis /> },
   {
     label: "Planos Ativos",
     icon: <FaClipboardCheck />,

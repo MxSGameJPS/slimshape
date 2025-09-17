@@ -116,11 +116,11 @@ export default function Injetaveis() {
   return (
     <>
       <h2 className={styles.pageTitle}>
-        <FaSyringe /> Injeções
+        <FaSyringe /> Tratamentos
       </h2>
       <div className={styles.tableBox}>
         <div className={styles.tableTitle}>
-          <FaSyringe /> Vendas de Injeções de Emagrecimento
+          <FaSyringe /> Vendas de Tratamentos de Emagrecimento
         </div>
         {loading ? (
           <div style={{ padding: 20 }}>Carregando...</div>
