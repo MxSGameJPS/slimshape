@@ -38,8 +38,7 @@ export default function Solucao() {
             Tratamento com entrega gratuita
           </div>
           <div className={styles.cardTexto}>
-            Se você precisar de medicação, cuidamos de tudo: compra em farmácias
-            parceiras, retenção da receita e entrega na sua casa. Sem visitas ao
+            Se você precisar de medicação, cuidamos de tudo, retenção da receita e entrega na sua casa. Sem visitas ao
             consultório, sem idas à farmácia, sem complicação com receitas.
           </div>
         </div>
@@ -53,8 +52,7 @@ export default function Solucao() {
           />
           <div className={styles.cardTitulo}>Adequado às normas da ANVISA</div>
           <div className={styles.cardTexto}>
-            As prescrições médicas vão direto para as farmácias parceiras, que
-            cuidam da retenção da receita e do envio – conforme a legislação. A
+            As prescrições médicas, nossa equipe cuida da retenção da receita e do envio – conforme a legislação. A
             SlimShape gerencia tudo para você focar no que importa: o seu
             cuidado.
           </div>
