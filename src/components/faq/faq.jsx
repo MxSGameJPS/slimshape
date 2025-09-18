@@ -25,11 +25,7 @@ const faqs = [
     content:
       "Renove suas receitas de forma simples e rápida, sem precisar sair de casa.",
   },
-  {
-    title: "Acompanhamento nutricional",
-    content:
-      "Conte com nutricionistas para montar um plano alimentar personalizado e garantir resultados duradouros.",
-  },
+
   {
     title: "Especialistas pelo WhatsApp",
     content:
