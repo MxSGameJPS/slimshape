@@ -11,7 +11,7 @@ const etapas = [
     icon: "/globe.svg",
     titulo: "Avaliação médica",
     texto:
-      "Com base nas suas respostas o endócrino indica seu tratamento, e nós enviamos seu diagnóstico.",
+      "Com base nas suas respostas o especialista indica seu tratamento, e nós enviamos seu diagnóstico.",
   },
   {
     icon: "/window.svg",
