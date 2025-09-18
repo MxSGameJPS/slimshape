@@ -9,6 +9,7 @@ export default function CheckoutClient() {
   const pacienteId = search?.get?.("pacienteId");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("BOLETO");
 
   async function criarPagamento() {
     setLoading(true);
@@ -57,7 +58,16 @@ export default function CheckoutClient() {
         }
       }
 
+      // map frontend selection to Asaas billingType values
+      const billingType =
+        paymentMethod === "PIX"
+          ? "PIX"
+          : paymentMethod === "CREDIT_CARD"
+          ? "CREDIT_CARD"
+          : "BOLETO";
+
       const base = {
+        billingType,
         value: value,
         dueDate: new Date(Date.now() + 3 * 24 * 3600 * 1000)
           .toISOString()
@@ -236,6 +246,16 @@ export default function CheckoutClient() {
         Paciente: <strong>{pacienteId || "(não informado)"}</strong>
       </p>
       <div className={styles.actions}>
+        <label style={{ marginRight: 8 }}>Forma de pagamento:</label>
+        <select
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          style={{ marginRight: 12 }}
+        >
+          <option value="BOLETO">Boleto</option>
+          <option value="PIX">Pix</option>
+          <option value="CREDIT_CARD">Cartão de Crédito</option>
+        </select>
         <button
           className={styles.btnPrimary}
           onClick={criarPagamento}
