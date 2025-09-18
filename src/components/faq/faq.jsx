@@ -18,7 +18,7 @@ const faqs = [
   {
     title: "Entrega garantida",
     content:
-      "Receba os medicamentos e kits diretamente em sua casa, com toda a praticidade e segurança.",
+      "Receba os medicamentos diretamente em sua casa, com toda a praticidade e segurança.",
   },
   {
     title: "Renovação online de prescrições",
