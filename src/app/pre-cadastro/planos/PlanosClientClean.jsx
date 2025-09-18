@@ -76,8 +76,8 @@ export default function PlanosClientClean() {
 
   function daysToMonthsLabel(days) {
     if (Number(days) === 30) return "1 mês";
-    if (Number(days) === 90) return "3 meses";
-    if (Number(days) === 180) return "6 meses";
+    if (Number(days) === 60) return "2 meses";
+    if (Number(days) === 120) return "3 meses";
     return `${days} dias`;
   }
 
