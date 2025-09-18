@@ -17,7 +17,7 @@ const etapas = [
     icon: "/window.svg",
     titulo: "Entrega do tratamento",
     texto:
-      "Se prescrita, sua medicação é adquirida em farmácias parceiras e entregue grátis na sua porta.",
+      "Se prescrita, Seu Protocolo será entregue na porta da sua casa com Frete Grátis",
   },
   {
     icon: "/vercel.svg",
