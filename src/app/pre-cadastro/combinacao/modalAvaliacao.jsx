@@ -1197,17 +1197,30 @@ function ModalAvaliacao({
                   </div>
                 </div>
                 <div className={styles.row}>
-                  <div className={styles.colFull}>
-                    <label>Histórico de Peso</label>
-                    <textarea
-                      name="historico_peso"
-                      placeholder="Conte sobre variações de peso, tentativas anteriores de emagrecimento/ganho de peso"
-                      rows={2}
-                      value={formData.historico_peso}
+                  <div className={styles.col}>
+                    <label>Menor Peso alcançado (kg) *</label>
+                    <input
+                      type="number"
+                      name="peso_minimo"
+                      placeholder="Ex: 70"
+                      required
+                      value={formData.peso_minimo || ""}
                       onChange={handleInputChange}
-                    ></textarea>
+                    />
+                  </div>
+                  <div className={styles.col}>
+                    <label>Maior peso alcançado (Kg) *</label>
+                    <input
+                      type="number"
+                      name="peso_maximo"
+                      placeholder="Ex: 90"
+                      required
+                      value={formData.peso_maximo || ""}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
+               
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Hábitos Alimentares</label>
