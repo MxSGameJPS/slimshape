@@ -29,16 +29,16 @@ export default function Footer() {
           <div className={styles.footerTitle}>Serviços</div>
           <ul className={styles.footerList}>
             <li>
-              <a href="#">Consultas Online</a>
+              <a href="#faq">Consultas Online</a>
             </li>
             <li>
-              <a href="#">Acompanhamento Nutricional</a>
+              <a href="#faq">Acompanhamento com Especialistas</a>
             </li>
             <li>
-              <a href="#">Prescrição de Medicamentos</a>
+              <a href="#faq">Prescrição de Medicamentos</a>
             </li>
             <li>
-              <a href="#">Suporte Especializado</a>
+              <a href="#faq">Suporte Especializado</a>
             </li>
           </ul>
         </div>
@@ -46,16 +46,16 @@ export default function Footer() {
           <div className={styles.footerTitle}>Empresa</div>
           <ul className={styles.footerList}>
             <li>
-              <a href="#">Sobre Nós</a>
+              <a href="#faq">Sobre Nós</a>
             </li>
             <li>
-              <a href="#">Nossa Equipe</a>
+              <a href="#faq">Nossa Equipe</a>
             </li>
             <li>
-              <a href="#">Política de Privacidade</a>
+              <a href="#faq">Política de Privacidade</a>
             </li>
             <li>
-              <a href="#">Termos de Uso</a>
+              <a href="#faq">Termos de Uso</a>
             </li>
           </ul>
         </div>
