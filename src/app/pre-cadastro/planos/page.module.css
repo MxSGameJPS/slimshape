@@ -211,3 +211,49 @@
     width: 95%;
   }
 }
+
+/* Payment options styling (used in modal) */
+.paymentOptionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+.paymentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+}
+.paymentLabel {
+  font-size: 0.98rem;
+  color: #2d1834;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.paymentSelect {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e6e9ef;
+  background: #fff;
+  font-size: 0.95rem;
+  color: #0f172a;
+  min-width: 64px;
+  margin-right: 15px;
+}
+.paymentSelect option {
+  color: #0f172a;
+  background: #ffffff;
+}
+.paymentBtn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.paymentRow + .paymentRow {
+  margin-top: 8px;
+}
