@@ -11,8 +11,8 @@ export default function Footer() {
             <Image
               src="/logo/logo.png"
               alt="SlimShape"
-              width={48}
-              height={48}
+              width={68}
+              height={68}
             />
             <span
               style={{ fontWeight: 700, fontSize: "1.3rem", color: "#fff" }}
