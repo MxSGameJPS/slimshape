@@ -48,8 +48,7 @@ export default function FAQ() {
             com tudo incluso
           </h2>
           <div className={styles.faqTexto}>
-            Seja qual for o seu momento de vida – conte com endócrinos,
-            nutricionistas e especialistas em saúde para encontrar sua receita
+            Seja qual for o seu momento de vida – conte com especialistas em saúde para encontrar sua receita
             certa para emagrecer.
           </div>
           <Link href="/pre-cadastro" className={styles.faqBtn}>
