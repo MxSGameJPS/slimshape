@@ -1,76 +1,101 @@
+.container {
+  padding: 24px;
+}
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 .card {
-  border: 1px solid #e6e6e6;
-  padding: 12px;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .cardTitle {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   margin: 0 0 8px 0;
+  color: #0f172a;
 }
 .descricao {
-  color: #444;
+  color: #6b7280;
+  margin: 0 0 12px 0;
+  line-height: 1.3;
 }
 .priceRow {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
 }
 .price {
   font-weight: 700;
+  color: #0b5394;
 }
 .btnPrimary {
-  background: #0070f3;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
   color: #fff;
   border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
   cursor: pointer;
+  font-weight: 600;
 }
 .btnSecondary {
-  background: #f3f3f3;
-  color: #000;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
+  background: white;
+  border: 1px solid #e6e9ef;
+  padding: 8px 12px;
+  border-radius: 10px;
   cursor: pointer;
 }
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(2, 6, 23, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
 }
 .modalBox {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 760px;
-  width: 100%;
+  width: min(920px, 96%);
+  background: white;
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.32);
 }
 .modalTitle {
-  margin: 0 0 6px 0;
+  margin: 0 0 8px 0;
+  font-size: 1.15rem;
 }
 .modalDescription {
   margin: 0 0 12px 0;
-  color: #666;
+  color: #6b7280;
 }
 .modalRow {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 .modalActions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .modalBox {
+    padding: 16px;
+  }
 }
