@@ -1,12 +1,16 @@
-  // Nova lógica: escolha explícita da forma de pagamento
+import React, { useState } from "react";
+import styles from "./PlanosClientClean.module.css";
+
+// Nova lógica: escolha explícita da forma de pagamento
+export default function PlanosClientClean(props) {
   const [paymentType, setPaymentType] = useState("BOLETO");
   const [maxInstallments, setMaxInstallments] = useState(6);
 
   function confirmSelection(dias) {
+    setShowModal(false);
+
     (async () => {
       try {
-        setShowModal(false);
-
         const rawPrice = findPreco(activePlano, dias);
         const value = parsePriceToNumber(rawPrice);
 
@@ -23,7 +27,6 @@
           }
         }
 
-        // Montar payload conforme escolha do usuário
         let billingTypes = [];
         let chargeTypes = [];
         let installment = undefined;
@@ -48,12 +51,16 @@
           ...(installment ? { installment } : {}),
           value: value,
           minutesToExpire: 60,
-          description: `Compra do plano ${activePlano?.nome} - ${daysToMonthsLabel(dias)}`,
+          description: `Compra do plano ${
+            activePlano?.nome
+          } - ${daysToMonthsLabel(dias)}`,
           externalReference: `plano_${activePlano?.id}_duracao_${dias}`,
           callback: {
             cancelUrl: window.location.origin + "/pre-cadastro/planos?cancel=1",
-            expiredUrl: window.location.origin + "/pre-cadastro/planos?expired=1",
-            successUrl: window.location.origin + "/pre-cadastro/planos?success=1",
+            expiredUrl:
+              window.location.origin + "/pre-cadastro/planos?expired=1",
+            successUrl:
+              window.location.origin + "/pre-cadastro/planos?success=1",
           },
           items: [
             {
@@ -75,13 +82,11 @@
                   pacienteData.cpf ||
                   pacienteData.cpf_cnpj,
                 phone: pacienteData.telefone || pacienteData.phone,
-                // outros campos podem ser adicionados aqui se existirem
               },
               ...base,
             }
           : { pacienteId: pacienteId || null, ...base };
 
-        // Remove keys com valor null para não enviar campos vazios
         function deepClean(obj) {
           Object.keys(obj).forEach((k) => {
             if (obj[k] && typeof obj[k] === "object") deepClean(obj[k]);
@@ -90,40 +95,40 @@
         }
         deepClean(asaasPayload);
 
-        // Sanitização básica de cpfCnpj/phone
         if (asaasPayload.customerData) {
           if (asaasPayload.customerData.cpfCnpj)
-            asaasPayload.customerData.cpfCnpj = String(asaasPayload.customerData.cpfCnpj).replace(/\D+/g, "");
+            asaasPayload.customerData.cpfCnpj = String(
+              asaasPayload.customerData.cpfCnpj
+            ).replace(/\D+/g, "");
           if (asaasPayload.customerData.phone)
-            asaasPayload.customerData.phone = String(asaasPayload.customerData.phone).replace(/\D+/g, "");
+            asaasPayload.customerData.phone = String(
+              asaasPayload.customerData.phone
+            ).replace(/\D+/g, "");
         }
 
         try {
           console.log("Payload cobranca (frontend):", asaasPayload);
         } catch (e) {}
 
-        // Atualizar paciente com plano (não-bloqueante)
         if (pacienteId) {
-          (async () => {
-            try {
-              const upd = {
-                plano: activePlano?.id || activePlano?.nome || null,
-              };
-              await fetch(
-                `https://slimshapeapi.vercel.app/api/pacientes/${encodeURIComponent(
-                  pacienteId
-                )}`,
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(upd),
-                }
-              );
-              console.log("Paciente atualizado com plano", upd);
-            } catch (err) {
-              console.warn("Falha ao atualizar paciente com plano:", err);
-            }
-          })();
+          try {
+            const upd = {
+              plano: activePlano?.id || activePlano?.nome || null,
+            };
+            await fetch(
+              `https://slimshapeapi.vercel.app/api/pacientes/${encodeURIComponent(
+                pacienteId
+              )}`,
+              {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(upd),
+              }
+            );
+            console.log("Paciente atualizado com plano", upd);
+          } catch (err) {
+            console.warn("Falha ao atualizar paciente com plano:", err);
+          }
         }
 
         const res = await fetch(
@@ -166,11 +171,13 @@
           window.location.href = data.url;
           return;
         }
+
         if (data.link || data.paymentLink || data.checkoutUrl) {
           const link = data.link || data.paymentLink || data.checkoutUrl;
           window.location.href = link;
           return;
         }
+
         if (data.id) {
           const check = await fetch(
             `https://slimshapeapi.vercel.app/api/asaas/cobranca/${data.id}`
@@ -188,6 +195,7 @@
           window.location.href = `/pre-cadastro/checkout?${params.toString()}`;
           return;
         }
+
         alert(
           "Cobrança criada. Verifique seu e-mail ou painel para concluir o pagamento."
         );
@@ -197,163 +205,9 @@
       }
     })();
   }
-                "CPF/CNPJ inválido detectado, removendo do payload:",
-                s
-              );
-              delete asaasPayload.cpfCnpj;
-              try {
-                alert(
-                  "CPF/CNPJ do paciente parece inválido e foi removido para permitir a criação da cobrança. Atualize o cadastro do paciente."
-                );
-              } catch (e) {}
-            }
-          } catch (e) {}
-        }
-        if (asaasPayload.telefone) {
-          try {
-            asaasPayload.telefone = String(asaasPayload.telefone).replace(
-              /\D+/g,
-              ""
-            );
-          } catch (e) {}
-        }
-        if (asaasPayload.value != null) {
-          const n = Number(asaasPayload.value);
-          if (Number.isFinite(n)) asaasPayload.value = Number(n.toFixed(2));
-        }
-        if (asaasPayload.dueDate) {
-          // normaliza strings como ISO ou dd/mm/yyyy
-          const d = String(asaasPayload.dueDate);
-          if (d.indexOf("/") > -1) {
-            const parts = d.split("/").map((s) => s.padStart(2, "0"));
-            if (parts.length === 3) {
-              // dd/mm/yyyy -> yyyy-mm-dd
-              asaasPayload.dueDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-          } else if (d.indexOf("-") > -1 && d.length >= 10) {
-            asaasPayload.dueDate = d.slice(0, 10);
-          }
-        }
-
-        // log para facilitar debug remoto: inspecionar payload antes do POST
-        try {
-          console.log("Payload cobranca (frontend):", asaasPayload);
-        } catch (e) {}
-
-        // Se tivermos pacienteId, tentar atualizar o paciente com o plano selecionado.
-        // Essa operação é não-bloqueante: se falhar, continuamos com a criação da cobrança.
-        if (pacienteId) {
-          (async () => {
-            try {
-              const upd = {
-                plano: activePlano?.id || activePlano?.nome || null,
-              };
-              await fetch(
-                `https://slimshapeapi.vercel.app/api/pacientes/${encodeURIComponent(
-                  pacienteId
-                )}`,
-                {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(upd),
-                }
-              );
-              console.log("Paciente atualizado com plano", upd);
-            } catch (err) {
-              console.warn("Falha ao atualizar paciente com plano:", err);
-            }
-          })();
-        }
-
-        const res = await fetch(
-          "https://slimshapeapi.vercel.app/api/asaas/checkout",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(asaasPayload),
-          }
-        );
-
-        // Ler corpo como texto primeiro (assim conseguimos logar o conteúdo independente
-        // de o stream já ter sido consumido). Tentar parsear JSON em seguida.
-        const respText = await res.text();
-        let data = null;
-        try {
-          data = respText ? JSON.parse(respText) : null;
-        } catch (e) {
-          data = null;
-        }
-
-        if (!res.ok) {
-          console.error(
-            "Erro do backend ao criar checkout (status",
-            res.status,
-            ") - parsed:",
-            data,
-            "raw:",
-            respText
-          );
-          // Mostrar alerta detalhado para que o usuário possa copiar o erro
-          try {
-            const mensagem =
-              data?.error || data || respText || `status ${res.status}`;
-            alert(
-              "Erro ao criar cobrança (detalhe):\n" + JSON.stringify(mensagem)
-            );
-          } catch (e) {}
-          throw new Error(data?.error || respText || `status ${res.status}`);
-        }
-
-        // Comportamento flex vel: backend pode retornar { link } ou { id }
-        // backend example returns { url }
-        if (data.url) {
-          window.location.href = data.url;
-          return;
-        }
-
-        if (data.link || data.paymentLink || data.checkoutUrl) {
-          const link = data.link || data.paymentLink || data.checkoutUrl;
-          window.location.href = link;
-          return;
-        }
-
-        if (data.id) {
-          // Se backend retornar apenas o id da cobran a, tentamos recuperar o link
-          const check = await fetch(
-            `https://slimshapeapi.vercel.app/api/asaas/cobranca/${data.id}`
-          );
-          if (check.ok) {
-            const c = await check.json();
-            if (c.link || c.paymentLink || c.checkoutUrl) {
-              window.location.href = c.link || c.paymentLink || c.checkoutUrl;
-              return;
-            }
-          }
-
-          // fallback: redireciona para a p gina interna de checkout com query params
-          const params = new URLSearchParams();
-          params.set("cobrancaId", String(data.id));
-          if (pacienteId) params.set("pacienteId", pacienteId);
-          window.location.href = `/pre-cadastro/checkout?${params.toString()}`;
-          return;
-        }
-
-        alert(
-          "Cobran a criada. Verifique seu e-mail ou painel para concluir o pagamento."
-        );
-      } catch (err) {
-        console.error(err);
-        alert("Erro ao criar cobran a: " + String(err));
-      }
-    })();
-  }
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Planos SlimShape Digital</h1>
-      </header>
-
+    <>
       <section className={styles.grid}>
         {principais.map((plano) => {
           // preço principal: preferir primeiro item em plano.precos ou fallback via findPreco
@@ -387,7 +241,9 @@
             <p className={styles.modalDescription}>{activePlano.descricao}</p>
 
             <div style={{ marginTop: 12, marginBottom: 16 }}>
-              <label style={{ fontWeight: 600, display: "block", marginBottom: 6 }}>
+              <label
+                style={{ fontWeight: 600, display: "block", marginBottom: 6 }}
+              >
                 Escolha a forma de pagamento:
               </label>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -439,7 +295,7 @@
                       min={2}
                       max={12}
                       value={maxInstallments}
-                      onChange={e => setMaxInstallments(e.target.value)}
+                      onChange={(e) => setMaxInstallments(e.target.value)}
                       style={{ width: 48, marginLeft: 4 }}
                     />
                   </span>
@@ -485,6 +341,6 @@
           </div>
         </div>
       )}
-    </main>
+    </>
   );
 }
