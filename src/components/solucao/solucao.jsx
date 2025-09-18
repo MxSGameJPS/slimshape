@@ -18,12 +18,12 @@ export default function Solucao() {
             className={styles.cardImg}
           />
           <div className={styles.cardTitulo}>
-            Médicos + Nutris + Especialistas
+            Médicos + Especialistas
           </div>
           <div className={styles.cardTexto}>
             A maioria só entrega a medicação. A SlimShape tem tudo para você
             emagrecer e manter resultados: medicação prescrita por médico (se
-            indicado) e acompanhamento de nutris e especialistas.
+            indicado) e acompanhamento de especialistas.
           </div>
         </div>
         <div className={styles.card}>

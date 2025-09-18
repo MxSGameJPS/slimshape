@@ -23,7 +23,7 @@ const etapas = [
     icon: "/vercel.svg",
     titulo: "Suporte contínuo",
     texto:
-      "Faça uma consulta com nutri e tenha suporte de saúde diário de especialistas pelo WhatsApp.",
+      "Faça uma consulta e tenha suporte de saúde diário de especialistas pelo WhatsApp.",
   },
 ];
 
