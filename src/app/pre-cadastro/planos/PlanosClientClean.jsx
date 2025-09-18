@@ -1,10 +1,62 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import styles from "./PlanosClientClean.module.css";
 
 // Nova lógica: escolha explícita da forma de pagamento
 export default function PlanosClientClean(props) {
   const [paymentType, setPaymentType] = useState("BOLETO");
   const [maxInstallments, setMaxInstallments] = useState(6);
+  // estados e utilitários faltantes (evitam ReferenceError durante prerender)
+  const [principais, setPrincipais] = useState(props?.planos || []);
+  const [showModal, setShowModal] = useState(false);
+  const [activePlano, setActivePlano] = useState(null);
+  const pacienteId = props?.pacienteId || null;
+
+  useEffect(() => {
+    if (!principais || principais.length === 0) {
+      (async () => {
+        try {
+          const r = await fetch("https://slimshapeapi.vercel.app/api/planos", {
+            cache: "no-store",
+          });
+          if (r.ok) {
+            const d = await r.json();
+            setPrincipais(Array.isArray(d) ? d : d?.planos || []);
+          }
+        } catch (e) {
+          console.warn("Não foi possível carregar planos:", e);
+        }
+      })();
+    }
+  }, []);
+
+  function openPicker(plano) {
+    setActivePlano(plano);
+    setShowModal(true);
+  }
+
+  function findPreco(plano, dias) {
+    if (!plano) return "--";
+    const precos = Array.isArray(plano.precos)
+      ? plano.precos
+      : plano.preco
+      ? [{ duracao: 30, preco: plano.preco }]
+      : [];
+    if (!precos.length) return plano.preco ?? "--";
+    const match = precos.find((p) => String(p.duracao).includes(String(dias)));
+    const chosen = match || precos[0];
+    return chosen.preco ?? chosen.price ?? chosen.valor ?? "--";
+  }
+
+  function daysToMonthsLabel(d) {
+    const n = Number(d);
+    if (!Number.isFinite(n)) return String(d || "");
+    if (n >= 30) {
+      const months = Math.round(n / 30);
+      return `${months} mês${months > 1 ? "es" : ""}`;
+    }
+    return `${n} dia${n > 1 ? "s" : ""}`;
+  }
 
   function confirmSelection(dias) {
     setShowModal(false);

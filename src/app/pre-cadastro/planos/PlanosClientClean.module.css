@@ -1,0 +1,76 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.card {
+  border: 1px solid #e6e6e6;
+  padding: 12px;
+  border-radius: 8px;
+}
+.cardTitle {
+  font-size: 1.1rem;
+  margin: 0 0 8px 0;
+}
+.descricao {
+  color: #444;
+}
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.price {
+  font-weight: 700;
+}
+.btnPrimary {
+  background: #0070f3;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btnSecondary {
+  background: #f3f3f3;
+  color: #000;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modalBox {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 760px;
+  width: 100%;
+}
+.modalTitle {
+  margin: 0 0 6px 0;
+}
+.modalDescription {
+  margin: 0 0 12px 0;
+  color: #666;
+}
+.modalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
