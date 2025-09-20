@@ -17,9 +17,11 @@ import Pacientes from "./views/Pacientes";
 import Injetaveis from "./views/Injetaveis";
 import PlanosAtivos from "./views/PlanosAtivos";
 import Analises from "./views/Analises";
+import Indicacoes from "./views/Indicacoes";
 
 const MENU = [
   { label: "Visão Geral", icon: <FaChartPie />, comp: <DashboardHome /> },
+  { label: "Indicações", icon: <FaUser />, comp: <Indicacoes /> },
   { label: "Pacientes", icon: <FaUser />, comp: <Pacientes /> },
   { label: "Tratamentos", icon: <FaVial />, comp: <Injetaveis /> },
   {
