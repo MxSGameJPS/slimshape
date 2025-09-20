@@ -1220,7 +1220,7 @@ function ModalAvaliacao({
                     />
                   </div>
                 </div>
-               
+
                 <div className={styles.row}>
                   <div className={styles.colFull}>
                     <label>Hábitos Alimentares</label>
@@ -1531,6 +1531,19 @@ function ModalAvaliacao({
                 }}
               >
                 <div className={styles.cardDesc}>{stepSubtitles[5]}</div>
+
+                <div className={styles.row}>
+                  <div className={styles.colFull}>
+                    <label>Nos conte quem te indicou?</label>
+                    <textarea
+                      name="indicou"
+                      placeholder="Nome ou referência (opcional)"
+                      rows={2}
+                      value={formData.indicou || ""}
+                      onChange={handleInputChange}
+                    ></textarea>
+                  </div>
+                </div>
                 <div className={styles.termosCard}>
                   <label className={styles.termoLabel}>
                     <input
