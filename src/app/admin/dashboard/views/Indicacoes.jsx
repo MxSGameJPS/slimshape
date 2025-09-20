@@ -8,7 +8,8 @@ function extractIndicou(p) {
   // tenta vários caminhos possíveis onde a propriedade pode existir
   if (!p) return "";
   if (typeof p.indicou === "string") return p.indicou;
-  if (p.indicou && typeof p.indicou === "object") return JSON.stringify(p.indicou);
+  if (p.indicou && typeof p.indicou === "object")
+    return JSON.stringify(p.indicou);
   if (p.raw && p.raw.indicou) return p.raw.indicou;
   // fallback: procurar por chaves parecidas
   if (p.indicacao) return p.indicacao;
@@ -27,7 +28,10 @@ export default function Indicacoes() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("https://slimshapeapi.vercel.app/api/pacientes", { cache: "no-store" });
+        const res = await fetch(
+          "https://slimshapeapi.vercel.app/api/pacientes",
+          { cache: "no-store" }
+        );
         if (!res.ok) {
           const txt = await res.text().catch(() => "");
           throw new Error(`Erro ao buscar pacientes: ${res.status} ${txt}`);
@@ -81,8 +85,15 @@ export default function Indicacoes() {
             {items.map((it, idx) => (
               <div key={idx} className={styles.pacienteCard}>
                 <div className={styles.pacienteCardHeader}>
-                  <div className={styles.pacienteNome} style={{ fontWeight: 600 }}>
-                    {it.raw.nome || it.raw.nomePaciente || it.raw.nome_completo || it.raw.usuario || "Paciente"}
+                  <div
+                    className={styles.pacienteNome}
+                    style={{ fontWeight: 600 }}
+                  >
+                    {it.raw.nome ||
+                      it.raw.nomePaciente ||
+                      it.raw.nome_completo ||
+                      it.raw.usuario ||
+                      "Paciente"}
                   </div>
                 </div>
                 <div className={styles.pacienteCardBody}>
